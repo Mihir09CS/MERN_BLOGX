@@ -35,6 +35,4 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Optional: dotenv example should be tracked
-!.env
 
