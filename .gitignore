@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+
+# Environment variables (CRITICAL)
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage & reports
+coverage/
+.nyc_output/
+
+# Build output (if any)
+dist/
+build/
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Optional: dotenv example should be tracked
+!.env
+
