@@ -68,16 +68,7 @@ const registerValidator = [
     .matches(/[@$!%*?&]/)
     .withMessage("Password must contain at least one special character (@, $, !, %, *, ?, &)"),
 
-  body("confirmPassword")
-    .custom((value, { req }) => {
-      if (!value) {
-        throw new Error("Confirm Password is required");
-      }
-      if (value !== req.body.password) {
-        throw new Error("Passwords do not match");
-      }
-      return true;
-    }),
+  
 ];
 
 const loginValidator = [
