@@ -38,7 +38,14 @@ app.use("/api/admin", adminRoutes);
 app.use(helmet()); // secure headers
 
 app.use(mongoSanitize()); // prevent Mongo operator injection
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*" })); // restrict in prod
+app.use(cors({
+  origin: [
+    'http://localhost:5173',        // local dev
+    'https://mern-blogx.vercel.app' // deployed frontend (if any)
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
+}));
 
 // Rate Limiting - general (adjust as needed)
 const apiLimiter = rateLimit({
