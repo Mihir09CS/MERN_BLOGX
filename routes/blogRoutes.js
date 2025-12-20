@@ -3,6 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
+  getMyProfile,
   getBlogs,
   getBlogById,
   createBlog,
@@ -35,6 +36,8 @@ router.get("/popular", getPopularBlogs);
 
 // Private routes (must come BEFORE ":id")
 router.get("/me/blogs", protect, getMyBlogs);
+
+
 router.get("/me/bookmarks", protect, getBookmarkedBlogs);
 
 // Single blog (public)

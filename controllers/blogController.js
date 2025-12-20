@@ -35,7 +35,7 @@ const createBlog = asyncHandler(async (req, res) => {
       likesCount: blog.likes?.length || 0,
     },
   });
-});
+}); 
 
 // @desc Get all blogs (with pagination, search, filter)
 // @route GET /api/blogs
