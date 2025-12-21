@@ -29,6 +29,8 @@ const createBlog = asyncHandler(async (req, res) => {
     coverImage: req.file ? `/uploads/blogs/${req.file.filename}` : undefined,
   });
 
+  
+
   logger.info(`Blog created | user=${req.user._id} blog=${blog._id}`);
 
   res.status(201).json({
@@ -38,7 +40,7 @@ const createBlog = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc Get all blogs (with pagination, search, filter)
+// @desc Get all blogs (with Redis cache)
 // @route GET /api/blogs
 // @access Public
 const getBlogs = asyncHandler(async (req, res) => {
@@ -52,6 +54,24 @@ const getBlogs = asyncHandler(async (req, res) => {
   if (req.query.tag) query.tags = { $in: [req.query.tag] };
   if (req.query.category) query.category = req.query.category;
 
+  // 🔑 Build cache key
+  const cacheKey = buildCacheKey("blogs", {
+    page,
+    limit,
+    query,
+  });
+
+  // 🔍 1. Try Redis first
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    return res.json({
+      success: true,
+      source: "cache",
+      ...JSON.parse(cached),
+    });
+  }
+
+  // 🗄️ 2. Fetch from MongoDB
   const total = await Blog.countDocuments(query);
   const blogs = await Blog.find(query)
     .populate("author", "name email")
@@ -65,41 +85,79 @@ const getBlogs = asyncHandler(async (req, res) => {
     likesCount: blog.likes?.length || 0,
   }));
 
-  res.json({
-    success: true,
+  const response = {
     page,
     totalPages: Math.ceil(total / limit),
     total,
     blogs: blogsWithCounts,
+  };
+
+  // 💾 3. Save to Redis (TTL = 60 seconds)
+  await redis.setex(cacheKey, 60, JSON.stringify(response));
+
+  res.json({
+    success: true,
+    source: "db",
+    ...response,
   });
 });
 
-// @desc Get single blog + increment view
+// @desc Get single blog (with Redis views)
 // @route GET /api/blogs/:id
 // @access Public
 const getBlogById = asyncHandler(async (req, res) => {
-  const blog = await Blog.findById(req.params.id).populate(
+  const blogId = req.params.id;
+  const cacheKey = `blog:${blogId}`;
+  const viewsKey = `blog:views:${blogId}`;
+
+  // 🔍 Try cache
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    // 🔼 Increment views atomically
+    const views = await redis.incr(viewsKey);
+
+    const parsed = JSON.parse(cached);
+    parsed.views = (parsed.views || 0) + views;
+
+    return res.json({
+      success: true,
+      source: "cache",
+      data: parsed,
+    });
+  }
+
+  // 🗄️ Fetch from DB
+  const blog = await Blog.findById(blogId).populate(
     "author",
     "name email"
   );
 
   if (!blog) {
-    logger.warn(`Blog not found: ${req.params.id}`);
     res.status(404);
     throw new Error("Blog not found");
   }
 
-  blog.views = (blog.views || 0) + 1;
-  await blog.save();
+  // 🔼 Increment Redis view counter
+  const views = await redis.incr(viewsKey);
+
+  const response = {
+    ...blog.toObject(),
+    views: blog.views + views,
+    likesCount: blog.likes?.length || 0,
+  };
+
+  // 💾 Cache blog (without permanent view mutation)
+  await redis.setex(cacheKey, 120, JSON.stringify(response));
 
   res.json({
     success: true,
-    data: {
-      ...blog.toObject(),
-      likesCount: blog.likes?.length || 0,
-    },
+    source: "db",
+    data: response,
   });
 });
+
+
+
 
 // // *******************************************
 // @desc Update blog with automatic old cover image deletion
@@ -136,6 +194,8 @@ const updateBlog = asyncHandler(async (req, res) => {
   }
 
   await blog.save();
+   await redis.del(`blog:${blog._id}`);
+   await redis.del(await redis.keys("blogs:*"));
 
   res.json({ success: true, message: "Blog updated", data: blog });
 });// // *****************************************
@@ -162,6 +222,10 @@ const deleteBlog = asyncHandler(async (req, res) => {
   }
 
   await blog.deleteOne();
+  await redis.del(`blog:${req.params.id}`);
+  await redis.del(await redis.keys("blogs:*"));
+
+
   logger.info(`Blog deleted | user=${req.user._id} blog=${blog._id}`);
 
   res.json({ success: true, message: "Blog deleted" });

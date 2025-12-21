@@ -87,11 +87,15 @@ const morgan = require("morgan");
 const cors = require("cors");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
+const syncBlogViews = require("./utils/syncViews");
 const mongoSanitize = require("express-mongo-sanitize");
 const path = require("path");
 
 dotenv.config();
 const connectDB = require("./config/db");
+
+// Sync every 60 seconds
+setInterval(syncBlogViews, 60 * 1000);
 
 const authRoutes = require("./routes/authRoutes");
 const blogRoutes = require("./routes/blogRoutes");

@@ -1,41 +1,84 @@
 // ______________________________________________________
 
 const logger = require("../utils/logger");
-
+const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
 const crypto = require("crypto");
 const User = require("../models/User");
 const generateToken = require("../utils/generateToken");
+const generateOtp = require("../utils/generateOtp");
 const sendEmail = require("../utils/sendEmail");
 const { json } = require("stream/consumers");
 
-
-// Register User
 const register = asyncHandler(async (req, res) => {
-  let { name, email, password } = req.body;
+  const { name, email, password } = req.body;
 
   if (!name || !email || !password) {
     res.status(400);
     throw new Error("All fields are required");
   }
 
-  email = email.toLowerCase();
-
-  const userExists = await User.findOne({ email });
-  if (userExists) {
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
     res.status(400);
     throw new Error("User already exists");
   }
 
-  const user = await User.create({ name, email, password });
+  const otp = generateOtp();
+  const hashedOtp = await bcrypt.hash(otp, 10);
+
+  const user = await User.create({
+    name,
+    email,
+    password,
+    isVerified: false,
+    emailOtp: hashedOtp,
+    emailOtpExpires: Date.now() + 10 * 60 * 1000, // 10 min
+  });
+
+  await sendEmail({
+    to: email,
+    subject: "Verify your email",
+    html: `
+      <h3>Email Verification</h3>
+      <p>Your OTP is:</p>
+      <h2>${otp}</h2>
+      <p>This OTP is valid for 10 minutes.</p>
+    `,
+  });
 
   res.status(201).json({
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    token: generateToken(user._id, "user"),
+    message: "OTP sent to email. Please verify your account.",
   });
 });
+
+
+// // Register User
+// const register = asyncHandler(async (req, res) => {
+//   let { name, email, password } = req.body;
+
+//   if (!name || !email || !password) {
+//     res.status(400);
+//     throw new Error("All fields are required");
+//   }
+
+//   email = email.toLowerCase();
+
+//   const userExists = await User.findOne({ email });
+//   if (userExists) {
+//     res.status(400);
+//     throw new Error("User already exists");
+//   }
+
+//   const user = await User.create({ name, email, password });
+
+//   res.status(201).json({
+//     _id: user._id,
+//     name: user.name,
+//     email: user.email,
+//     token: generateToken(user._id, "user"),
+//   });
+// });
 
 // Login User ONLY
 const login = asyncHandler(async (req, res) => {
@@ -55,6 +98,11 @@ const login = asyncHandler(async (req, res) => {
     throw new Error("Invalid email or password");
   }
 
+  if (!user.isVerified) {
+    res.status(403);
+    throw new Error("Please verify your email first");
+  }
+
   if (user.isBanned) {
     res.status(403);
     throw new Error("User is banned");
@@ -68,6 +116,156 @@ const login = asyncHandler(async (req, res) => {
     email: user.email,
     token: generateToken(user._id, "user"),
   });
+});
+
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (user.isVerified) {
+    res.status(400);
+    throw new Error("Email already verified");
+  }
+
+  if (!user.emailOtp || user.emailOtpExpires < Date.now()) {
+    res.status(400);
+    throw new Error("OTP expired. Please resend OTP.");
+  }
+
+  const isMatch = await bcrypt.compare(otp, user.emailOtp);
+  if (!isMatch) {
+    res.status(400);
+    throw new Error("Invalid OTP");
+  }
+
+  user.isVerified = true;
+  user.emailOtp = undefined;
+  user.emailOtpExpires = undefined;
+
+  await user.save();
+
+  // ✅ Welcome Email
+  await sendEmail({
+    to: user.email,
+    subject: "Welcome to Blog App 🎉",
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Welcome to Blog App</title>
+</head>
+
+<body style="margin:0; padding:0; background-color:#fafafa;
+font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+    <tr>
+      <td align="center">
+
+        <table width="100%" style="max-width:420px; background:#ffffff;
+        border-radius:8px; border:1px solid #dbdbdb; padding:32px;">
+
+          <tr>
+            <td align="center" style="padding-bottom:20px;">
+              <h2 style="margin:0; font-weight:600; color:#262626;">Blog App</h2>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="color:#262626; font-size:18px; font-weight:600; padding-bottom:12px;">
+              Welcome, ${user.name} 👋
+            </td>
+          </tr>
+
+          <tr>
+            <td style="color:#4f4f4f; font-size:14px; line-height:1.6; padding-bottom:24px;">
+              Your email has been successfully verified.
+              You can now explore blogs, publish content, and connect with others.
+            </td>
+          </tr>
+
+          <tr>
+            <td align="center" style="padding-bottom:24px;">
+              <a href="http://localhost:3000/login"
+                 style="background:#0095f6; color:#ffffff; text-decoration:none;
+                 padding:12px 24px; border-radius:6px;
+                 font-size:14px; font-weight:600; display:inline-block;">
+                Get Started
+              </a>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="color:#8e8e8e; font-size:12px; line-height:1.5;">
+              If you did not create this account, you can safely ignore this email.
+              <br/><br/>
+              © ${new Date().getFullYear()} Blog App
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
+`,
+  });
+
+  // await sendEmail({
+  //   to: user.email,
+  //   subject: "Welcome to Blog App 🎉",
+  //   html: `
+  //     <h2>Welcome, ${user.name}!</h2>
+  //     <p>Your account has been successfully verified.</p>
+  //   `,
+  // });
+
+  res.json({
+    message: "Email verified successfully",
+  });
+});
+
+const resendOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (user.isVerified) {
+    res.status(400);
+    throw new Error("Email already verified");
+  }
+
+  const otp = generateOtp();
+  user.emailOtp = await bcrypt.hash(otp, 10);
+  user.emailOtpExpires = Date.now() + 10 * 60 * 1000;
+
+  await user.save();
+
+  await sendEmail({
+    to: email,
+    subject: "Resend OTP",
+    html: `
+      <h3>Your new OTP:</h3>
+      <h2>${otp}</h2>
+      <p>Valid for 10 minutes.</p>
+    `,
+  });
+
+  res.json({ message: "New OTP sent to email" });
 });
 
 
@@ -141,5 +339,5 @@ const resetPassword = asyncHandler(async (req, res) => {
   res.json({ message: "Password reset successful" });
 });
 
-module.exports = { register, login, forgotPassword, resetPassword };
+module.exports = { register, login, forgotPassword,verifyEmail,resendOtp,resetPassword, };
 

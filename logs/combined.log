@@ -139,3 +139,124 @@
 {"level":"info","message":"Blog created | user=69482a870df9657619f8b157 blog=694838ace9b7b3dbeb8c2d5f","timestamp":"2025-12-21 23:43:00"}
 {"level":"info","message":"PUT /api/profile/694458aba6a0d2b65575021f/follow","timestamp":"2025-12-21 23:43:11"}
 {"level":"info","message":"PUT /api/profile/694458aba6a0d2b65575021f/follow","timestamp":"2025-12-21 23:43:12"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-21 23:45:27"}
+{"level":"info","message":"PUT /api/profile/694458aba6a0d2b65575021f/follow","timestamp":"2025-12-21 23:46:10"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-21 23:52:59"}
+{"level":"info","message":"GET /api/blogs?page=1","timestamp":"2025-12-21 23:54:10"}
+{"level":"info","message":"GET /api/blogs?page=1","timestamp":"2025-12-21 23:54:24"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-21 23:56:03"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-21 23:56:46"}
+{"level":"info","message":"GET /api/blogs/693eb03254ef1401102475b5","timestamp":"2025-12-21 23:57:17"}
+{"admin":null,"level":"error","message":"Blog not found","method":"GET","stack":"Error: Blog not found\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\blogController.js:130:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-21 23:57:17","url":"/api/blogs/693eb03254ef1401102475b5","user":null}
+{"level":"info","message":"GET /api/blogs/694829f20df9657619f8b148","timestamp":"2025-12-21 23:57:36"}
+{"level":"info","message":"GET /api/blogs/694829f20df9657619f8b148","timestamp":"2025-12-21 23:57:46"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:00:13"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:06:03"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:07:17"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:08:07"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:09:09"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:12:01"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:12:36"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:12:43"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:12:50"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:12:52"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:13:19"}
+{"level":"info","message":"GET /api/blogs/694829f20df9657619f8b148","timestamp":"2025-12-22 00:13:25"}
+{"level":"info","message":"GET /api/blogs/694829f20df9657619f8b148","timestamp":"2025-12-22 00:13:28"}
+{"level":"info","message":"GET /api/blogs/694829f20df9657619f8b148","timestamp":"2025-12-22 00:13:30"}
+{"level":"info","message":"GET /api/blogs/694829f20df9657619f8b148","timestamp":"2025-12-22 00:13:32"}
+{"level":"info","message":"Synced views for blog 694829f20df9657619f8b148: +4","timestamp":"2025-12-22 00:14:19"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:18:34"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:18:37"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:19:26"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:19:28"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:31:34"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 00:31:37"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:12:03"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:12:11"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:13:40"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:15:43"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:15:46"}
+{"level":"info","message":"POST /api/auth/forgot-password","timestamp":"2025-12-22 01:18:29"}
+{"level":"info","message":"Password reset requested for email: mihirparidaw1@gmail.com","timestamp":"2025-12-22 01:18:30"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:21:00"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:21:21"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:22:39"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:22:51"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:23:27"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:23:53"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:24:25"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:25:25"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:25:38"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:25:41"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:26:35"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:26:50"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:27:00"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:27:21"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:27:27"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:27:43"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:27:56"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 01:28:14"}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 01:30:55"}
+{"admin":null,"level":"error","message":"User already exists","method":"POST","stack":"Error: User already exists\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:24:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 01:30:55","url":"/api/auth/register","user":null}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 01:31:52"}
+{"admin":null,"level":"error","message":"User already exists","method":"POST","stack":"Error: User already exists\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:24:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 01:31:52","url":"/api/auth/register","user":null}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 01:32:32"}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 01:34:26"}
+{"admin":null,"level":"error","message":"User not found","method":"POST","stack":"Error: User not found\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:127:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 01:34:26","url":"/api/auth/verify-email","user":null}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 01:36:41"}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 01:39:33"}
+{"admin":null,"level":"error","message":"Email already verified","method":"POST","stack":"Error: Email already verified\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:132:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 01:39:33","url":"/api/auth/verify-email","user":null}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 01:39:43"}
+{"admin":null,"level":"error","message":"Email already verified","method":"POST","stack":"Error: Email already verified\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:132:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 01:39:43","url":"/api/auth/verify-email","user":null}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 01:40:56"}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 01:42:25"}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 01:42:30"}
+{"admin":null,"level":"error","message":"Email already verified","method":"POST","stack":"Error: Email already verified\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:132:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 01:42:31","url":"/api/auth/verify-email","user":null}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 01:43:34"}
+{"level":"info","message":"User logged in: 694854513c74b242077f9751","timestamp":"2025-12-22 01:43:34"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 01:45:10"}
+{"level":"info","message":"User logged in: 694854513c74b242077f9751","timestamp":"2025-12-22 01:45:10"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 01:46:32"}
+{"level":"info","message":"User logged in: 694852583c74b242077f9749","timestamp":"2025-12-22 01:46:32"}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 01:52:25"}
+{"level":"info","message":"POST /api/auth/resend-otp","timestamp":"2025-12-22 01:53:47"}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 01:54:54"}
+{"admin":null,"level":"error","message":"Invalid OTP","method":"POST","stack":"Error: Invalid OTP\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:143:11","timestamp":"2025-12-22 01:54:54","url":"/api/auth/verify-email","user":null}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 01:55:07"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 01:55:42"}
+{"level":"info","message":"User logged in: 694857013c74b242077f975a","timestamp":"2025-12-22 01:55:42"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 02:01:19"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 02:01:21"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 02:09:38"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 02:09:42"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 02:09:48"}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 02:10:33"}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 02:11:07"}
+{"admin":null,"level":"error","message":"Invalid OTP","method":"POST","stack":"Error: Invalid OTP\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:143:11","timestamp":"2025-12-22 02:11:07","url":"/api/auth/verify-email","user":null}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 02:11:08"}
+{"admin":null,"level":"error","message":"Invalid OTP","method":"POST","stack":"Error: Invalid OTP\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:143:11","timestamp":"2025-12-22 02:11:09","url":"/api/auth/verify-email","user":null}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 02:11:30"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:12:18"}
+{"level":"info","message":"User logged in: 69485b414d8c78ac025dca58","timestamp":"2025-12-22 02:12:18"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 02:26:21"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 02:26:35"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 02:31:31"}
+{"level":"info","message":"POST /api/auth/admin-login","timestamp":"2025-12-22 02:32:16"}
+{"level":"info","message":"Admin logged in: 6948296d0df9657619f8b13d","timestamp":"2025-12-22 02:32:16"}
+{"level":"info","message":"POST /api/auth/admin-login","timestamp":"2025-12-22 02:32:18"}
+{"level":"info","message":"Admin logged in: 6948296d0df9657619f8b13d","timestamp":"2025-12-22 02:32:18"}
+{"level":"info","message":"POST /api/auth/admin-login","timestamp":"2025-12-22 02:32:19"}
+{"level":"info","message":"Admin logged in: 6948296d0df9657619f8b13d","timestamp":"2025-12-22 02:32:19"}
+{"level":"info","message":"POST /api/auth/admin-login","timestamp":"2025-12-22 02:32:20"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:32:57"}
+{"level":"info","message":"User logged in: 69485b414d8c78ac025dca58","timestamp":"2025-12-22 02:32:57"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:32:58"}
+{"level":"info","message":"User logged in: 69485b414d8c78ac025dca58","timestamp":"2025-12-22 02:32:58"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:32:59"}
+{"level":"info","message":"User logged in: 69485b414d8c78ac025dca58","timestamp":"2025-12-22 02:32:59"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:32:59"}
+{"level":"info","message":"User logged in: 69485b414d8c78ac025dca58","timestamp":"2025-12-22 02:32:59"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:33:00"}
+{"level":"info","message":"User logged in: 69485b414d8c78ac025dca58","timestamp":"2025-12-22 02:33:01"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:33:03"}
