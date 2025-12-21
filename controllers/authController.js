@@ -1,5 +1,7 @@
 // ______________________________________________________
 
+const logger = require("../utils/logger");
+
 const asyncHandler = require("express-async-handler");
 const crypto = require("crypto");
 const User = require("../models/User");
@@ -7,63 +9,66 @@ const generateToken = require("../utils/generateToken");
 const sendEmail = require("../utils/sendEmail");
 const { json } = require("stream/consumers");
 
-// @desc Register user
-// @route POST /api/auth/register
-// @access Public
+
+// Register User
 const register = asyncHandler(async (req, res) => {
-  const { name, email, password } = req.body;
+  let { name, email, password } = req.body;
+
   if (!name || !email || !password) {
     res.status(400);
-    throw new Error("Please provide name, email and password");
+    throw new Error("All fields are required");
   }
+
+  email = email.toLowerCase();
+
   const userExists = await User.findOne({ email });
   if (userExists) {
     res.status(400);
     throw new Error("User already exists");
   }
+
   const user = await User.create({ name, email, password });
+
   res.status(201).json({
     _id: user._id,
     name: user.name,
     email: user.email,
-    role: user.role,
-    token: generateToken(user._id),
+    token: generateToken(user._id, "user"),
   });
 });
 
-// @desc Login user
-// @route POST /api/auth/login
-// @access Public
+// Login User ONLY
 const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
 
-  // Basic validation — only ensure required fields are present
   if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: "Email and password are required",
-    });
+    res.status(400);
+    throw new Error("Email and password are required");
   }
+
+  email = email.toLowerCase();
 
   const user = await User.findOne({ email });
 
-  if (user && (await user.matchPassword(password))) {
-    return res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user._id),
-    });
+  if (!user || !(await user.matchPassword(password))) {
+    res.status(401);
+    throw new Error("Invalid email or password");
   }
 
-  // Failed login — do NOT throw after sending a response
-  return res.status(401).json({
-    success: false,
-    message: "Invalid email or password",
+  if (user.isBanned) {
+    res.status(403);
+    throw new Error("User is banned");
+  }
+
+  logger.info(`User logged in: ${user._id}`);
+
+  res.json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    token: generateToken(user._id, "user"),
   });
 });
-
 
 
 // @desc Forgot Password
@@ -88,16 +93,18 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
   try {
     await sendEmail({
-      to: user.email,
+      to: user.email.toLowerCase(),
       subject: "Password Reset Request",
       text: message,
     });
+    logger.info(`Password reset requested for email: ${user.email}`);
+
     res.json({ message: "Email sent with password reset instructions" });
   } catch (error) {
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
     await user.save({ validateBeforeSave: false });
-
+    logger.error(`Password reset email failed for ${user.email}`, error);
     res.status(500);
     throw new Error("Email could not be sent");
   }
@@ -127,7 +134,9 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.resetPasswordExpires = undefined;
 
   await user.save();
-  console.log("RESET TOKEN (DEV):", req.params.token);
+  // console.log("RESET TOKEN (DEV):", req.params.token);
+  logger.info(`Password reset successful for user: ${user._id}`);
+
 
   res.json({ message: "Password reset successful" });
 });

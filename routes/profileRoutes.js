@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const { protect } = require("../middlewares/authMiddleware");
+const { protectUser } = require("../middlewares/authMiddleware");
 const upload = require("../middlewares/uploadMiddleware");
 
 const {
@@ -11,10 +11,10 @@ const {
   toggleFollowProfile,
 } = require("../controllers/profileController");
 
-router.get("/me", protect, getMyProfile);
-router.put("/me", protect, upload.single("avatar"), updateMyProfile);
+router.get("/me", protectUser, getMyProfile);
+router.put("/me", protectUser, upload.single("avatar"), updateMyProfile);
 
 router.get("/:userId", getPublicProfile);
-router.put("/:userId/follow", protect, toggleFollowProfile);
+router.put("/:userId/follow", protectUser, toggleFollowProfile);
 
 module.exports = router;

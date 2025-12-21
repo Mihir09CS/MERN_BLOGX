@@ -1,7 +1,7 @@
 
 // const express = require("express");
 // const router = express.Router();
-// const { protect } = require("../middlewares/authMiddleware");
+// const { protectUser } = require("../middlewares/authMiddleware");
 // const { authorize } = require("../middlewares/roleMiddleware");
 // const upload = require("../middlewares/uploadMiddleware");
 
@@ -25,30 +25,30 @@
 // // ==================== USER ROUTES ====================
 
 // // Logged in user profile
-// router.get("/me", protect, getMe);
-// router.get("/me", protect, getMyProfile);
-// router.put("/me", protect, upload.single("avatar"), updateMyProfile);
-// router.delete("/me", protect, deleteMe);
+// router.get("/me", protectUser, getMe);
+// router.get("/me", protectUser, getMyProfile);
+// router.put("/me", protectUser, upload.single("avatar"), updateMyProfile);
+// router.delete("/me", protectUser, deleteMe);
 
 
 // router.get("/:userId", getPublicProfile);
 // router.get("/:id/blogs", getUserBlogs);
 
 // // Update profile with avatar upload
-// router.put("/me", protect, upload.single("avatar"), updateMe);
+// router.put("/me", protectUser, upload.single("avatar"), updateMe);
 
 
 // // Followers / Following
-// router.get("/me/followers", protect, getMyFollowers);
-// router.get("/me/following", protect, getMyFollowing);
+// router.get("/me/followers", protectUser, getMyFollowers);
+// router.get("/me/following", protectUser, getMyFollowing);
 
 // // // Follow / Unfollow user
-// // router.post("/:id/follow", protect, followUser);
+// // router.post("/:id/follow", protectUser, followUser);
 
-// router.put("/:userId/follow", protect, toggleFollow);
+// router.put("/:userId/follow", protectUser, toggleFollow);
 
 // // Admin only - view all users
-// router.get("/", protect, authorize("admin"), getUsers);
+// router.get("/", protectUser, authorize("admin"), getUsers);
 
 // // Public profile by ID
 // router.get("/:id", getUserById);
@@ -59,8 +59,8 @@
 const express = require("express");
 const router = express.Router();
 
-const { protect } = require("../middlewares/authMiddleware");
-const { authorize } = require("../middlewares/roleMiddleware");
+const { protectUser } = require("../middlewares/authMiddleware");
+
 
 const {
   getMe,
@@ -73,18 +73,17 @@ const {
 } = require("../controllers/userController");
 
 // Logged-in user
-router.get("/me", protect, getMe);
-router.put("/me", protect, updateMe);
-router.delete("/me", protect, deleteMe);
+router.get("/me", protectUser, getMe);
+router.put("/me", protectUser, updateMe);
+router.delete("/me", protectUser, deleteMe);
 
 // User content
 router.get("/:id/blogs", getUserBlogs);
 
 // Bookmarks
-router.get("/me/bookmarks", protect, getMyBookmarks);
+router.get("/me/bookmarks", protectUser, getMyBookmarks);
 
-// Admin
-router.get("/", protect, authorize("admin"), getUsers);
+
 
 // Public user
 router.get("/:id", getUserById);

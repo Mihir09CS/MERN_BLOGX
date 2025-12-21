@@ -101,6 +101,8 @@ const adminRoutes = require("./routes/adminRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
+const requestLogger = require("./middlewares/loggerMiddleware");
+
 
 const app = express();
 
@@ -112,6 +114,7 @@ connectDB();
 
 // Body parser
 app.use(express.json({ limit: "5mb" }));
+app.use(requestLogger);
 app.use(express.urlencoded({ extended: true }));
 
 // Logging
@@ -139,6 +142,7 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 app.use("/api", apiLimiter);
+
 
 // Static uploads
 app.use(

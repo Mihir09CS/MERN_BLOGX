@@ -3,7 +3,6 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  getMyProfile,
   getBlogs,
   getBlogById,
   createBlog,
@@ -17,7 +16,7 @@ const {
   getPopularBlogs,
 } = require("../controllers/blogController");
 
-const { protect } = require("../middlewares/authMiddleware");
+const { protectUser } = require("../middlewares/authMiddleware");
 const validate = require("../middlewares/validateMiddleware");
 const {
   createBlogValidator,
@@ -35,10 +34,10 @@ router.get("/", getBlogs);
 router.get("/popular", getPopularBlogs);
 
 // Private routes (must come BEFORE ":id")
-router.get("/me/blogs", protect, getMyBlogs);
+router.get("/me/blogs", protectUser, getMyBlogs);
 
 
-router.get("/me/bookmarks", protect, getBookmarkedBlogs);
+router.get("/me/bookmarks", protectUser, getBookmarkedBlogs);
 
 // Single blog (public)
 router.get("/:id", validateObjectId("id"), getBlogById);
@@ -46,7 +45,7 @@ router.get("/:id", validateObjectId("id"), getBlogById);
 // Create blog (private) with image upload
 router.post(
   "/",
-  protect,
+  protectUser,
   upload.single("coverImage"), // handle image
   createBlogValidator,
   validate,
@@ -56,7 +55,7 @@ router.post(
 // Update blog (private - author or admin) with optional image
 router.put(
   "/:id",
-  protect,
+  protectUser,
   validateObjectId("id"),
   upload.single("coverImage"),
   updateBlogValidator,
@@ -65,15 +64,15 @@ router.put(
 );
 
 // Delete blog (private - author or admin)
-router.delete("/:id", protect, validateObjectId("id"), deleteBlog);
+router.delete("/:id", protectUser, validateObjectId("id"), deleteBlog);
 
 // Like / Unlike blog (private)
-router.put("/:id/like", protect, validateObjectId("id"), likeBlog);
+router.put("/:id/like", protectUser, validateObjectId("id"), likeBlog);
 
 // Dislike / Undislike blog (private)
-router.put("/:id/dislike", protect, validateObjectId("id"), dislikeBlog);
+router.put("/:id/dislike", protectUser, validateObjectId("id"), dislikeBlog);
 
 // Bookmark / Unbookmark blog (private)
-router.put("/:id/bookmark", protect, validateObjectId("id"), bookmarkBlog);
+router.put("/:id/bookmark", protectUser, validateObjectId("id"), bookmarkBlog);
 
 module.exports = router;

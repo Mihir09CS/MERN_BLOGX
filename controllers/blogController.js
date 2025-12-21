@@ -1,5 +1,7 @@
 // controllers/blogController.js
-
+const redis = require("../config/redis");
+const buildCacheKey = require("../utils/cacheKey");
+const logger = require("../utils/logger");
 const asyncHandler = require("express-async-handler");
 const Blog = require("../models/Blog");
 const fs = require("fs");
@@ -24,18 +26,17 @@ const createBlog = asyncHandler(async (req, res) => {
     author: req.user._id,
     category,
     tags: tags || [],
-    coverImage: req.file ? `/uploads/${req.file.filename}` : undefined,
+    coverImage: req.file ? `/uploads/blogs/${req.file.filename}` : undefined,
   });
+
+  logger.info(`Blog created | user=${req.user._id} blog=${blog._id}`);
 
   res.status(201).json({
     success: true,
     message: "Blog created successfully",
-    data: {
-      ...blog.toObject(),
-      likesCount: blog.likes?.length || 0,
-    },
+    data: blog,
   });
-}); 
+});
 
 // @desc Get all blogs (with pagination, search, filter)
 // @route GET /api/blogs
@@ -83,6 +84,7 @@ const getBlogById = asyncHandler(async (req, res) => {
   );
 
   if (!blog) {
+    logger.warn(`Blog not found: ${req.params.id}`);
     res.status(404);
     throw new Error("Blog not found");
   }
@@ -105,11 +107,19 @@ const getBlogById = asyncHandler(async (req, res) => {
 // @access Private (author or admin)
 const updateBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
-  if (!blog) throw new Error("Blog not found");
 
-  if (blog.author.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+  if (!blog) {
+    logger.warn(`Update failed | blog not found ${req.params.id}`);
+    res.status(404);
+    throw new Error("Blog not found");
+  }
+
+  if (blog.author.toString() !== req.user._id.toString()) {
+    logger.warn(
+      `Unauthorized blog update | user=${req.user._id} blog=${blog._id}`
+    );
     res.status(403);
-    throw new Error("Not authorized to update this blog");
+    throw new Error("Not authorized");
   }
 
   const { title, content, category, tags, excerpt } = req.body;
@@ -119,57 +129,42 @@ const updateBlog = asyncHandler(async (req, res) => {
   blog.category = category || blog.category;
   blog.tags = tags || blog.tags;
 
-  // ✅ Handle image update
-  if (req.file) {
-    // delete old image if exists
-    if (blog.coverImage) {
-      const oldPath = path.join(__dirname, "..", blog.coverImage);
-      if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-    }
+  if (req.file && blog.coverImage) {
+    const oldPath = path.join(__dirname, "..", blog.coverImage);
+    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
     blog.coverImage = `/uploads/blogs/${req.file.filename}`;
   }
 
-  const updatedBlog = await blog.save();
+  await blog.save();
 
-  res.json({
-    success: true,
-    message: "Blog updated successfully",
-    data: {
-      ...updatedBlog.toObject(),
-      coverImage: blog.coverImage
-        ? `${req.protocol}://${req.get("host")}${blog.coverImage}`
-        : null,
-      likesCount: updatedBlog.likes?.length || 0,
-    },
-  });
-});
-
-
-// // *****************************************
+  res.json({ success: true, message: "Blog updated", data: blog });
+});// // *****************************************
 
 
 
 
 // @desc Delete blog
 // @route DELETE /api/blogs/:id
-// @access Private (author or admin)
+
+// DELETE BLOG (USER)
 const deleteBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
+
   if (!blog) {
+    logger.warn(`Delete failed | blog not found ${req.params.id}`);
     res.status(404);
     throw new Error("Blog not found");
   }
 
-  if (
-    blog.author.toString() !== req.user._id.toString() &&
-    req.user.role !== "admin"
-  ) {
+  if (blog.author.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error("Not authorized to delete this blog");
+    throw new Error("Not authorized");
   }
 
   await blog.deleteOne();
-  res.json({ success: true, message: "Blog deleted successfully" });
+  logger.info(`Blog deleted | user=${req.user._id} blog=${blog._id}`);
+
+  res.json({ success: true, message: "Blog deleted" });
 });
 
 // @desc Like / Unlike blog

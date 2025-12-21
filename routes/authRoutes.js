@@ -8,6 +8,9 @@ const {
   resetPassword,
 } = require("../controllers/authController");
 
+const {adminRegister, adminLogin } = require("../controllers/adminAuthController");
+
+
 const {
   registerValidator,
   loginValidator,
@@ -17,6 +20,10 @@ const validate = require("../middlewares/validateMiddleware");
 // ✅ Register & Login
 router.post("/register", registerValidator, validate, register);
 router.post("/login", loginValidator, validate, login);
+
+// ✅ Register & Login
+router.post("/admin-register", registerValidator, validate, adminRegister);
+router.post("/admin-login", loginValidator, validate, adminLogin);
 
 // ✅ Forgot & Reset Password
 router.post("/forgot-password", forgotPassword);

@@ -1,4 +1,4 @@
-
+const logger = require("../utils/logger");
 
 const asyncHandler = require("express-async-handler");
 const Comment = require("../models/Comment");
@@ -142,26 +142,21 @@ const deleteComment = asyncHandler(async (req, res) => {
   const comment = await Comment.findById(req.params.id);
 
   if (!comment) {
+    logger.warn(`Comment not found ${req.params.id}`);
     res.status(404);
     throw new Error("Comment not found");
   }
 
-  if (
-    comment.author.toString() !== req.user._id.toString() &&
-    req.user.role !== "admin"
-  ) {
+  if (comment.author.toString() !== req.user._id.toString()) {
     res.status(403);
-    throw new Error("Not authorized to delete this comment");
+    throw new Error("Not authorized");
   }
 
   await comment.deleteOne();
+  logger.info(`Comment deleted | user=${req.user._id} comment=${comment._id}`);
 
-  res.json({
-    success: true,
-    message: "Comment deleted successfully",
-  });
+  res.json({ success: true, message: "Comment deleted" });
 });
-
 /**
  * @desc Like/Unlike a comment
  * @route PUT /api/comments/:id/like

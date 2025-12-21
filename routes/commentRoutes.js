@@ -13,7 +13,7 @@ const {
   replyToComment,
 } = require("../controllers/commentController");
 
-const { protect } = require("../middlewares/authMiddleware");
+const { protectUser } = require("../middlewares/authMiddleware");
 const validate = require("../middlewares/validateMiddleware");
 const {
   createCommentValidator,
@@ -27,7 +27,7 @@ router.get("/:blogId", validateObjectId("blogId"), getComments);
 // CREATE comment (private)
 router.post(
   "/:blogId",
-  protect,
+  protectUser,
   validateObjectId("blogId"),
   createCommentValidator,
   validate,
@@ -37,7 +37,7 @@ router.post(
 // UPDATE comment (private, only author)
 router.put(
   "/:id",
-  protect,
+  protectUser,
   validateObjectId("id"),
   updateCommentValidator,
   validate,
@@ -45,16 +45,16 @@ router.put(
 );
 
 // DELETE comment (private, author or admin)
-router.delete("/:id", protect, validateObjectId("id"), deleteComment);
+router.delete("/:id", protectUser, validateObjectId("id"), deleteComment);
 
 // LIKE/UNLIKE comment (private)
-router.put("/:id/like", protect, validateObjectId("id"), likeComment);
+router.put("/:id/like", protectUser, validateObjectId("id"), likeComment);
 
 // DISLIKE/UNDISLIKE comment (private)  <-- new route
-router.put("/:id/dislike", protect, validateObjectId("id"), dislikeComment);
+router.put("/:id/dislike", protectUser, validateObjectId("id"), dislikeComment);
 
 
 // Reply to a comment
-router.post("/:id/reply", protect, replyToComment);
+router.post("/:id/reply", protectUser, replyToComment);
 
 module.exports = router;

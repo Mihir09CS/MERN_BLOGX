@@ -1,4 +1,5 @@
 // controllers/adminController.js
+const logger = require("../utils/logger");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
 const Blog = require("../models/Blog");
@@ -137,26 +138,6 @@ const updateBlogStatus = asyncHandler(async (req, res) => {
 
 //***************************************************************** 
 
-// PATCH /api/admin/users/:id/role
-// body: { role: "user" | "admin" }
-const updateUserRole = asyncHandler(async (req, res) => {
-  const { role } = req.body;
-  if (!["user", "admin"].includes(role)) {
-    res.status(400);
-    throw new Error("Invalid role");
-  }
-
-  const user = await User.findById(req.params.id);
-  if (!user) {
-    res.status(404);
-    throw new Error("User not found");
-  }
-
-  user.role = role;
-  await user.save();
-  res.json({ success: true, message: "Role updated", role: user.role });
-});
-
 // PATCH /api/admin/users/:id/ban
 // body: { reason?: string }
 const banUser = asyncHandler(async (req, res) => {
@@ -174,6 +155,9 @@ const banUser = asyncHandler(async (req, res) => {
   user.bannedAt = new Date();
   user.banReason = reason || "Policy violation";
   await user.save();
+  logger.warn(
+    `Admin ${req.admin._id} banned user ${user._id}, reason=${user.banReason}`
+  );
 
   res.json({
     success: true,
@@ -212,6 +196,8 @@ const deleteBlogAdmin = asyncHandler(async (req, res) => {
     throw new Error("Blog not found");
   }
   await blog.deleteOne();
+  logger.warn(`Admin ${req.admin._id} deleted blog ${blog._id}`);
+
   res.json({ success: true, message: "Blog deleted by admin" });
 });
 
@@ -239,6 +225,10 @@ const deleteUserByAdmin = asyncHandler(async (req, res) => {
   }
 
   await user.deleteOne();
+  logger.warn(
+    `Admin ${req.admin._id} deleted user ${user._id}, cascade=${cascade}`
+  );
+
   res.json({
     success: true,
     message: "User deleted",
@@ -279,6 +269,7 @@ const getAdminStats = asyncHandler(async (req, res) => {
   const totalComments = await Comment.countDocuments();
   const publishedBlogs = await Blog.countDocuments({ isPublished: true });
   const bannedUsers = await User.countDocuments({ isBanned: true });
+  logger.info(`Admin ${req.admin._id} accessed dashboard stats`);
 
   res.json({
     success: true,
@@ -298,7 +289,6 @@ const getAdminStats = asyncHandler(async (req, res) => {
 module.exports = {
   getAllUsers,
   getUserByIdAdmin,
-  updateUserRole,
   banUser,
   unbanUser,
   deleteUserByAdmin,
