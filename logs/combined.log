@@ -260,3 +260,113 @@
 {"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:33:00"}
 {"level":"info","message":"User logged in: 69485b414d8c78ac025dca58","timestamp":"2025-12-22 02:33:01"}
 {"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 02:33:03"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 22:14:40"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 22:16:18"}
+{"level":"info","message":"User logged in: 69485b414d8c78ac025dca58","timestamp":"2025-12-22 22:16:19"}
+{"level":"info","message":"POST /api/blogs","timestamp":"2025-12-22 22:17:47"}
+{"level":"info","message":"Blog created | user=69463159f3106050fc1feb8a blog=694976331686f9939d2b8e20","timestamp":"2025-12-22 22:17:47"}
+{"level":"info","message":"PUT /api/blogs/6946381e070db908c73b82dd","timestamp":"2025-12-22 22:19:53"}
+{"admin":null,"level":"error","message":"ERR wrong number of arguments for 'del' command","method":"PUT","stack":"ReplyError: ERR wrong number of arguments for 'del' command\n    at parseError (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\redis-parser\\lib\\parser.js:179:12)\n    at parseType (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\redis-parser\\lib\\parser.js:302:14)","timestamp":"2025-12-22 22:19:53","url":"/api/blogs/6946381e070db908c73b82dd","user":"69463159f3106050fc1feb8a"}
+{"level":"info","message":"PUT /api/blogs/694976331686f9939d2b8e20","timestamp":"2025-12-22 22:20:44"}
+{"admin":null,"level":"error","message":"ERR wrong number of arguments for 'del' command","method":"PUT","stack":"ReplyError: ERR wrong number of arguments for 'del' command\n    at parseError (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\redis-parser\\lib\\parser.js:179:12)\n    at parseType (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\redis-parser\\lib\\parser.js:302:14)","timestamp":"2025-12-22 22:20:45","url":"/api/blogs/694976331686f9939d2b8e20","user":"69463159f3106050fc1feb8a"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 22:27:22"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 22:32:40"}
+{"level":"info","message":"PUT /api/blogs/694976331686f9939d2b8e20","timestamp":"2025-12-22 22:32:49"}
+{"level":"info","message":"POST /api/blogs","timestamp":"2025-12-22 22:34:37"}
+{"level":"info","message":"Blog created | user=69463159f3106050fc1feb8a blog=69497a2550935474a61d0a7f","timestamp":"2025-12-22 22:34:37"}
+{"level":"info","message":"DELETE /api/blogs/69497a2550935474a61d0a7f","timestamp":"2025-12-22 22:35:21"}
+{"level":"info","message":"Blog deleted | user=69463159f3106050fc1feb8a blog=69497a2550935474a61d0a7f","timestamp":"2025-12-22 22:35:21"}
+{"level":"info","message":"GET /api/blogs?page=1","timestamp":"2025-12-22 22:35:30"}
+{"level":"info","message":"GET /api/blogs?page=1","timestamp":"2025-12-22 22:35:46"}
+{"level":"info","message":"GET /api/blogs?page=1","timestamp":"2025-12-22 22:35:48"}
+{"level":"info","message":"POST /api/blogs","timestamp":"2025-12-22 22:36:09"}
+{"level":"info","message":"Blog created | user=69463159f3106050fc1feb8a blog=69497a8250935474a61d0a88","timestamp":"2025-12-22 22:36:10"}
+{"level":"info","message":"PUT /api/blogs/694976331686f9939d2b8e20","timestamp":"2025-12-22 22:36:28"}
+{"level":"info","message":"GET /api/admin/users?page=1&limit=10&search=mihir","timestamp":"2025-12-22 22:37:14"}
+{"level":"info","message":"PATCH /api/admin/users/694458aba6a0d2b65575021f/role","timestamp":"2025-12-22 22:37:54"}
+{"admin":"6948296d0df9657619f8b13d","level":"error","message":"Not Found - /api/admin/users/694458aba6a0d2b65575021f/role","method":"PATCH","stack":"Error: Not Found - /api/admin/users/694458aba6a0d2b65575021f/role\n    at notFound (D:\\MDev\\FullStack\\Blog-App\\backend\\middlewares\\errorMiddleware.js:27:17)\n    at Layer.handle [as handle_request] (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\express\\lib\\router\\layer.js:95:5)\n    at trim_prefix (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\express\\lib\\router\\index.js:328:13)\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\express\\lib\\router\\index.js:286:9\n    at Function.process_params (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\express\\lib\\router\\index.js:346:12)\n    at next (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\express\\lib\\router\\index.js:280:10)\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\express\\lib\\router\\index.js:646:15\n    at next (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\express\\lib\\router\\index.js:265:14)\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\middlewares\\authMiddleware.js:131:3\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 22:37:54","url":"/api/admin/users/694458aba6a0d2b65575021f/role","user":null}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 22:39:23"}
+{"admin":null,"level":"error","message":"Invalid email or password","method":"POST","stack":"Error: Invalid email or password\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:98:11","timestamp":"2025-12-22 22:39:23","url":"/api/auth/login","user":null}
+{"level":"info","message":"POST /api/auth/forgot-password","timestamp":"2025-12-22 22:39:42"}
+{"level":"info","message":"Password reset requested for email: lofol52738@arugy.com","timestamp":"2025-12-22 22:39:44"}
+{"level":"info","message":"PUT /api/auth/reset-password/b1b5da8fd70858f9e84fc89da9605eb9492726cd","timestamp":"2025-12-22 22:40:53"}
+{"level":"info","message":"Password reset successful for user: 69463159f3106050fc1feb8a","timestamp":"2025-12-22 22:40:53"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 22:41:15"}
+{"admin":null,"level":"error","message":"Please verify your email first","method":"POST","stack":"Error: Please verify your email first\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:103:11","timestamp":"2025-12-22 22:41:16","url":"/api/auth/login","user":null}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 22:42:52"}
+{"admin":null,"level":"error","message":"Invalid email or password","method":"POST","stack":"Error: Invalid email or password\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:98:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 22:42:53","url":"/api/auth/login","user":null}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 22:43:04"}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 22:43:19"}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 22:45:38"}
+{"admin":null,"level":"error","message":"Illegal arguments: number, string","method":"POST","stack":"Error: Illegal arguments: number, string\n    at _async (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\bcryptjs\\umd\\index.js:305:15)\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\bcryptjs\\umd\\index.js:335:11\n    at new Promise (<anonymous>)\n    at Object.compare (D:\\MDev\\FullStack\\Blog-App\\backend\\node_modules\\bcryptjs\\umd\\index.js:334:16)\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:140:32\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 22:45:38","url":"/api/auth/verify-email","user":null}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 22:45:52"}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 22:46:24"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 22:46:50"}
+{"admin":null,"level":"error","message":"Please verify your email first","method":"POST","stack":"Error: Please verify your email first\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:103:11","timestamp":"2025-12-22 22:46:50","url":"/api/auth/login","user":null}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 22:47:46"}
+{"level":"info","message":"PUT /api/profile/me","timestamp":"2025-12-22 22:49:01"}
+{"admin":null,"level":"error","message":"User not found","method":"PUT","stack":"Error: User not found\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\middlewares\\authMiddleware.js:95:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 22:49:01","url":"/api/profile/me","user":null}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 22:49:24"}
+{"admin":null,"level":"error","message":"Invalid email or password","method":"POST","stack":"Error: Invalid email or password\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:98:11","timestamp":"2025-12-22 22:49:25","url":"/api/auth/login","user":null}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 22:50:08"}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 22:54:26"}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 22:54:30"}
+{"level":"info","message":"POST /api/auth/verify-email","timestamp":"2025-12-22 22:57:01"}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 22:57:28"}
+{"level":"info","message":"User logged in: 69497ece50935474a61d0aa7","timestamp":"2025-12-22 22:57:28"}
+{"level":"info","message":"POST /api/comments/6946381e070db908c73b82dd","timestamp":"2025-12-22 23:05:55"}
+{"level":"info","message":"GET /api/admin/users/69463159f3106050fc1feb8a","timestamp":"2025-12-22 23:09:57"}
+{"admin":"6948296d0df9657619f8b13d","level":"error","message":"User not found","method":"GET","stack":"Error: User not found\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\adminController.js:93:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 23:09:57","url":"/api/admin/users/69463159f3106050fc1feb8a","user":null}
+{"level":"info","message":"GET /api/admin/users/69463159f3106050fc1feb8a","timestamp":"2025-12-22 23:12:37"}
+{"admin":"6948296d0df9657619f8b13d","level":"error","message":"User not found","method":"GET","stack":"Error: User not found\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\adminController.js:93:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 23:12:37","url":"/api/admin/users/69463159f3106050fc1feb8a","user":null}
+{"level":"info","message":"GET /api/admin/users/69482a870df9657619f8b157","timestamp":"2025-12-22 23:13:26"}
+{"admin":"6948296d0df9657619f8b13d","level":"error","message":"User not found","method":"GET","stack":"Error: User not found\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\adminController.js:93:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 23:13:26","url":"/api/admin/users/69482a870df9657619f8b157","user":null}
+{"level":"info","message":"POST /api/blogs","timestamp":"2025-12-22 23:13:59"}
+{"level":"info","message":"Blog created | user=69497ece50935474a61d0aa7 blog=6949835f50935474a61d0ab8","timestamp":"2025-12-22 23:13:59"}
+{"level":"info","message":"PUT /api/blogs/694976331686f9939d2b8e20","timestamp":"2025-12-22 23:15:09"}
+{"level":"warn","message":"Update failed | blog not found 694976331686f9939d2b8e20","timestamp":"2025-12-22 23:15:09"}
+{"admin":null,"level":"error","message":"Blog not found","method":"PUT","stack":"Error: Blog not found\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\blogController.js:179:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 23:15:09","url":"/api/blogs/694976331686f9939d2b8e20","user":"69497ece50935474a61d0aa7"}
+{"level":"info","message":"PUT /api/blogs/6949835f50935474a61d0ab8","timestamp":"2025-12-22 23:15:26"}
+{"level":"info","message":"POST /api/auth/register","timestamp":"2025-12-22 23:15:53"}
+{"admin":null,"level":"error","message":"User already exists","method":"POST","stack":"Error: User already exists\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\authController.js:24:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 23:15:53","url":"/api/auth/register","user":null}
+{"level":"info","message":"POST /api/auth/login","timestamp":"2025-12-22 23:16:02"}
+{"level":"info","message":"User logged in: 69497c2f50935474a61d0a99","timestamp":"2025-12-22 23:16:02"}
+{"level":"info","message":"POST /api/blogs","timestamp":"2025-12-22 23:17:00"}
+{"level":"info","message":"Blog created | user=69497c2f50935474a61d0a99 blog=6949841450935474a61d0ac2","timestamp":"2025-12-22 23:17:00"}
+{"level":"info","message":"GET /api/blogs?page=1&limit=10","timestamp":"2025-12-22 23:17:22"}
+{"level":"info","message":"POST /api/comments/6949841450935474a61d0ac2","timestamp":"2025-12-22 23:18:46"}
+{"level":"info","message":"POST /api/comments/69463b39070db908c73b832b/reply","timestamp":"2025-12-22 23:20:07"}
+{"admin":null,"level":"error","message":"Parent comment not found","method":"POST","stack":"Error: Parent comment not found\n    at D:\\MDev\\FullStack\\Blog-App\\backend\\controllers\\commentController.js:253:11\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)","timestamp":"2025-12-22 23:20:07","url":"/api/comments/69463b39070db908c73b832b/reply","user":"69497ece50935474a61d0aa7"}
+{"level":"info","message":"POST /api/comments/6949847e50935474a61d0ac9/reply","timestamp":"2025-12-22 23:20:32"}
+{"level":"info","message":"PUT /api/comments/694984e850935474a61d0ad0/like","timestamp":"2025-12-22 23:21:02"}
+{"level":"info","message":"PUT /api/profile/me","timestamp":"2025-12-22 23:30:00"}
+{"level":"info","message":"PUT /api/users/me","timestamp":"2025-12-22 23:31:04"}
+{"level":"info","message":"PUT /api/profile/me","timestamp":"2025-12-22 23:33:08"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:33:51"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:34:03"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:34:05"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:34:08"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:35:23"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:35:25"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:35:40"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:35:42"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:36:04"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:36:06"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:36:15"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:36:34"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:36:35"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:36:36"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:36:55"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:36:57"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:37:04"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:37:22"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:37:37"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:38:02"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:38:47"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:38:52"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:38:59"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:39:03"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:39:06"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:39:16"}
+{"level":"info","message":"Redis connected","timestamp":"2025-12-22 23:39:22"}
+{"level":"info","message":"GET /api/profile/69497c2f50935474a61d0a99","timestamp":"2025-12-22 23:51:11"}

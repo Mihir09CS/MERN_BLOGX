@@ -1,26 +1,5 @@
-// // validators/commentValidators.js
-// const { body } = require("express-validator");
+// validators/commentValidators.js
 
-// const createCommentValidator = [
-//   body("content")
-//     .trim()
-//     .notEmpty()
-//     .withMessage("Comment content is required")
-//     .isLength({ min: 2 })
-//     .withMessage("Comment must be at least 2 characters"),
-// ];
-
-// const updateCommentValidator = [
-//   body("content")
-//     .optional()
-//     .trim()
-//     .isLength({ min: 2 })
-//     .withMessage("Comment must be at least 2 characters"),
-// ];
-
-// module.exports = { createCommentValidator, updateCommentValidator };
-
-// ____________________________________________________________________
 
 const { body } = require("express-validator");
 

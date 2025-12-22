@@ -1,38 +1,5 @@
-// // validators/blogValidators.js
-// const { body } = require("express-validator");
+// validators/blogValidators.js
 
-// const createBlogValidator = [
-//   body("title")
-//     .trim()
-//     .notEmpty()
-//     .withMessage("Title is required")
-//     .isLength({ min: 3 })
-//     .withMessage("Title must be at least 3 characters"),
-//   body("content")
-//     .trim()
-//     .notEmpty()
-//     .withMessage("Content is required")
-//     .isLength({ min: 10 })
-//     .withMessage("Content must be at least 10 characters"),
-// ];
-
-// const updateBlogValidator = [
-//   body("title")
-//     .optional()
-//     .trim()
-//     .isLength({ min: 3 })
-//     .withMessage("Title must be at least 3 characters"),
-//   body("content")
-//     .optional()
-//     .trim()
-//     .isLength({ min: 10 })
-//     .withMessage("Content must be at least 10 characters"),
-// ];
-
-// module.exports = { createBlogValidator, updateBlogValidator };
-
-
-// ________________________________________________________
 const { body } = require("express-validator");
 
 const createBlogValidator = [

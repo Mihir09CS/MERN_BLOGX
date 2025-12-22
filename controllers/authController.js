@@ -1,5 +1,3 @@
-// ______________________________________________________
-
 const logger = require("../utils/logger");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
@@ -52,33 +50,6 @@ const register = asyncHandler(async (req, res) => {
   });
 });
 
-
-// // Register User
-// const register = asyncHandler(async (req, res) => {
-//   let { name, email, password } = req.body;
-
-//   if (!name || !email || !password) {
-//     res.status(400);
-//     throw new Error("All fields are required");
-//   }
-
-//   email = email.toLowerCase();
-
-//   const userExists = await User.findOne({ email });
-//   if (userExists) {
-//     res.status(400);
-//     throw new Error("User already exists");
-//   }
-
-//   const user = await User.create({ name, email, password });
-
-//   res.status(201).json({
-//     _id: user._id,
-//     name: user.name,
-//     email: user.email,
-//     token: generateToken(user._id, "user"),
-//   });
-// });
 
 // Login User ONLY
 const login = asyncHandler(async (req, res) => {

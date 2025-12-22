@@ -7,6 +7,13 @@ const Blog = require("../models/Blog");
 const fs = require("fs");
 const path = require("path");
 
+const invalidateBlogCache = async () => {
+  const keys = await redis.keys("blogs:*");
+  if (keys.length > 0) {
+    await redis.del(...keys);
+  }
+};
+
 
 // @desc Create new blog
 // @route POST /api/blogs
@@ -194,8 +201,9 @@ const updateBlog = asyncHandler(async (req, res) => {
   }
 
   await blog.save();
-   await redis.del(`blog:${blog._id}`);
-   await redis.del(await redis.keys("blogs:*"));
+  // invalidate cache safely
+  await redis.del(`blog:${blog._id}`);
+  await invalidateBlogCache();
 
   res.json({ success: true, message: "Blog updated", data: blog });
 });// // *****************************************
@@ -222,9 +230,9 @@ const deleteBlog = asyncHandler(async (req, res) => {
   }
 
   await blog.deleteOne();
+  // invalidate cache safely
   await redis.del(`blog:${req.params.id}`);
-  await redis.del(await redis.keys("blogs:*"));
-
+  await invalidateBlogCache();
 
   logger.info(`Blog deleted | user=${req.user._id} blog=${blog._id}`);
 

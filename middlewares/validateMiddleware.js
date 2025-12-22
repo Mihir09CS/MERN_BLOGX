@@ -1,25 +1,3 @@
-// // middlewares/validateMiddleware.js
-// const { validationResult } = require("express-validator");
-
-// const validate = (req, res, next) => {
-//   const errors = validationResult(req);
-//   if (!errors.isEmpty()) {
-//     res.status(422); // Unprocessable Entity
-//     return next(
-//       new Error(
-//         errors
-//           .array()
-//           .map((e) => e.msg)
-//           .join(", ")
-//       )
-//     );
-//   }
-//   next();
-// };
-
-// module.exports = validate;
-
-
 
 const { validationResult } = require("express-validator");
 

@@ -1,39 +1,4 @@
 
-// const mongoose = require("mongoose");
-
-// const commentSchema = new mongoose.Schema(
-//   {
-//     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-//     text: { type: String, required: true, trim: true },
-//   },
-//   { timestamps: true }
-// );
-
-// const blogSchema = new mongoose.Schema(
-//   {
-//     title: { type: String, required: true },
-//     content: { type: String, required: true },
-//     excerpt: { type: String },
-//     author: {
-//       type: mongoose.Schema.Types.ObjectId,
-//       ref: "User",
-//       required: true,
-//     },
-//     category: { type: String },
-//     tags: [{ type: String }],
-//     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-//     dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-//     views: { type: Number, default: 0 },
-//     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }], // ✅ only references
-//     isPublished: { type: Boolean, default: true },
-//   },
-//   { timestamps: true }
-// );
-
-// module.exports = mongoose.model("Blog", blogSchema);
-
-
-
 const mongoose = require("mongoose");
 
 const blogSchema = new mongoose.Schema(
