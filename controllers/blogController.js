@@ -1,19 +1,27 @@
 // controllers/blogController.js
-const redis = require("../config/redis");
+
+const redis = require("../utils/redis");
 const buildCacheKey = require("../utils/cacheKey");
 const logger = require("../utils/logger");
 const asyncHandler = require("express-async-handler");
 const Blog = require("../models/Blog");
-const fs = require("fs");
-const path = require("path");
+const imagekit = require("../utils/imageKit");
+const sharp = require("sharp");
 
 const invalidateBlogCache = async () => {
-  const keys = await redis.keys("blogs:*");
-  if (keys.length > 0) {
-    await redis.del(...keys);
-  }
+  await redis.incr("blogs:version");
 };
 
+const safeJsonParse = (value, fallback) => {
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return fallback;
+    }
+  }
+  return value ?? fallback;
+};
 
 // @desc Create new blog
 // @route POST /api/blogs
@@ -26,19 +34,37 @@ const createBlog = asyncHandler(async (req, res) => {
     throw new Error("Title and content are required");
   }
 
+  let coverImage = null;
+
+  if (req.file) {
+    const optimizedBuffer = await sharp(req.file.buffer)
+      .resize({ width: 1280 })
+      .jpeg({ quality: 75 })
+      .toBuffer();
+
+    const uploadResult = await imagekit.upload({
+      file: optimizedBuffer.toString("base64"),
+      fileName: `blog-${Date.now()}.jpg`,
+      folder: "/blogs",
+    });
+
+    coverImage = {
+      url: uploadResult.url,
+      fileId: uploadResult.fileId,
+    };
+  }
+
   const blog = await Blog.create({
     title,
     content,
     excerpt: excerpt || content.substring(0, 200) + "...",
     author: req.user._id,
     category,
-    tags: tags || [],
-    coverImage: req.file ? `/uploads/blogs/${req.file.filename}` : undefined,
+    tags: tags ? (typeof tags === "string" ? JSON.parse(tags) : tags) : [],
+    coverImage,
   });
 
-  
-
-  logger.info(`Blog created | user=${req.user._id} blog=${blog._id}`);
+  await invalidateBlogCache();
 
   res.status(201).json({
     success: true,
@@ -55,31 +81,46 @@ const getBlogs = asyncHandler(async (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 10, 50);
   const skip = (page - 1) * limit;
 
-  const query = {};
-  if (req.query.search) query.$text = { $search: req.query.search };
-  if (req.query.author) query.author = req.query.author;
-  if (req.query.tag) query.tags = { $in: [req.query.tag] };
-  if (req.query.category) query.category = req.query.category;
+  const version = (await redis.get("blogs:version")) || 1;
 
-  // 🔑 Build cache key
   const cacheKey = buildCacheKey("blogs", {
+    version,
     page,
     limit,
-    query,
+    query: req.query,
   });
 
-  // 🔍 1. Try Redis first
+  // 🔹 1. READ FROM CACHE (DO NOT PARSE TWICE)
   const cached = await redis.get(cacheKey);
   if (cached) {
     return res.json({
-      success: true,
+      ...cached, // 🔥 cached is ALREADY an object
       source: "cache",
-      ...JSON.parse(cached),
     });
   }
 
-  // 🗄️ 2. Fetch from MongoDB
+  // 🔹 2. BUILD QUERY
+  const query = {};
+
+  if (req.query.search) {
+    query.$text = { $search: req.query.search };
+  }
+
+  if (req.query.author) {
+    query.author = req.query.author;
+  }
+
+  if (req.query.category) {
+    query.category = req.query.category;
+  }
+
+  if (req.query.tag) {
+    query.tags = { $in: [req.query.tag] };
+  }
+
+  // 🔹 3. DB QUERY
   const total = await Blog.countDocuments(query);
+
   const blogs = await Blog.find(query)
     .populate("author", "name email")
     .sort({ createdAt: -1 })
@@ -93,19 +134,19 @@ const getBlogs = asyncHandler(async (req, res) => {
   }));
 
   const response = {
+    success: true,
     page,
     totalPages: Math.ceil(total / limit),
     total,
     blogs: blogsWithCounts,
   };
 
-  // 💾 3. Save to Redis (TTL = 60 seconds)
-  await redis.setex(cacheKey, 60, JSON.stringify(response));
+  // 🔹 4. SAVE TO CACHE (STRINGIFY ONCE)
+  await redis.set(cacheKey, response);
 
   res.json({
-    success: true,
-    source: "db",
     ...response,
+    source: "db",
   });
 });
 
@@ -113,58 +154,26 @@ const getBlogs = asyncHandler(async (req, res) => {
 // @route GET /api/blogs/:id
 // @access Public
 const getBlogById = asyncHandler(async (req, res) => {
-  const blogId = req.params.id;
-  const cacheKey = `blog:${blogId}`;
-  const viewsKey = `blog:views:${blogId}`;
-
-  // 🔍 Try cache
-  const cached = await redis.get(cacheKey);
-  if (cached) {
-    // 🔼 Increment views atomically
-    const views = await redis.incr(viewsKey);
-
-    const parsed = JSON.parse(cached);
-    parsed.views = (parsed.views || 0) + views;
-
-    return res.json({
-      success: true,
-      source: "cache",
-      data: parsed,
-    });
-  }
-
-  // 🗄️ Fetch from DB
-  const blog = await Blog.findById(blogId).populate(
-    "author",
-    "name email"
-  );
+  const blog = await Blog.findByIdAndUpdate(
+    req.params.id,
+    { $inc: { views: 1 } },
+    { new: true }
+  ).populate("author", "name email");
 
   if (!blog) {
     res.status(404);
     throw new Error("Blog not found");
   }
 
-  // 🔼 Increment Redis view counter
-  const views = await redis.incr(viewsKey);
-
-  const response = {
-    ...blog.toObject(),
-    views: blog.views + views,
-    likesCount: blog.likes?.length || 0,
-  };
-
-  // 💾 Cache blog (without permanent view mutation)
-  await redis.setex(cacheKey, 120, JSON.stringify(response));
-
   res.json({
     success: true,
     source: "db",
-    data: response,
+    data: {
+      ...blog.toObject(),
+      likesCount: blog.likes?.length || 0,
+    },
   });
 });
-
-
-
 
 // // *******************************************
 // @desc Update blog with automatic old cover image deletion
@@ -174,42 +183,61 @@ const updateBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
 
   if (!blog) {
-    logger.warn(`Update failed | blog not found ${req.params.id}`);
     res.status(404);
     throw new Error("Blog not found");
   }
 
   if (blog.author.toString() !== req.user._id.toString()) {
-    logger.warn(
-      `Unauthorized blog update | user=${req.user._id} blog=${blog._id}`
-    );
     res.status(403);
     throw new Error("Not authorized");
   }
 
   const { title, content, category, tags, excerpt } = req.body;
+
   blog.title = title || blog.title;
   blog.content = content || blog.content;
   blog.excerpt = excerpt || blog.excerpt;
   blog.category = category || blog.category;
-  blog.tags = tags || blog.tags;
+  blog.tags = tags
+    ? typeof tags === "string"
+      ? JSON.parse(tags)
+      : tags
+    : blog.tags;
 
-  if (req.file && blog.coverImage) {
-    const oldPath = path.join(__dirname, "..", blog.coverImage);
-    if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
-    blog.coverImage = `/uploads/blogs/${req.file.filename}`;
+  // 🔥 ImageKit logic
+  if (req.file) {
+    // delete old image from ImageKit
+    if (blog.coverImage?.fileId) {
+      await imagekit.deleteFile(blog.coverImage.fileId);
+    }
+
+    const optimizedBuffer = await sharp(req.file.buffer)
+      .resize({ width: 1280 })
+      .jpeg({ quality: 75 })
+      .toBuffer();
+
+    const uploadResult = await imagekit.upload({
+      file: optimizedBuffer.toString("base64"),
+      fileName: `blog-${Date.now()}.jpg`,
+      folder: "/blogs",
+    });
+
+    blog.coverImage = {
+      url: uploadResult.url,
+      fileId: uploadResult.fileId,
+    };
   }
 
   await blog.save();
-  // invalidate cache safely
-  await redis.del(`blog:${blog._id}`);
+
   await invalidateBlogCache();
 
-  res.json({ success: true, message: "Blog updated", data: blog });
-});// // *****************************************
-
-
-
+  res.json({
+    success: true,
+    message: "Blog updated successfully",
+    data: blog,
+  });
+});
 
 // @desc Delete blog
 // @route DELETE /api/blogs/:id
@@ -219,7 +247,6 @@ const deleteBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
 
   if (!blog) {
-    logger.warn(`Delete failed | blog not found ${req.params.id}`);
     res.status(404);
     throw new Error("Blog not found");
   }
@@ -229,14 +256,19 @@ const deleteBlog = asyncHandler(async (req, res) => {
     throw new Error("Not authorized");
   }
 
+  // 🔥 Delete ImageKit file
+  if (blog.coverImage?.fileId) {
+    await imagekit.deleteFile(blog.coverImage.fileId);
+  }
+
   await blog.deleteOne();
-  // invalidate cache safely
-  await redis.del(`blog:${req.params.id}`);
+
   await invalidateBlogCache();
 
-  logger.info(`Blog deleted | user=${req.user._id} blog=${blog._id}`);
-
-  res.json({ success: true, message: "Blog deleted" });
+  res.json({
+    success: true,
+    message: "Blog deleted successfully",
+  });
 });
 
 // @desc Like / Unlike blog
@@ -383,4 +415,5 @@ module.exports = {
   getMyBlogs,
   getBookmarkedBlogs,
   getPopularBlogs,
+  buildCacheKey,
 };

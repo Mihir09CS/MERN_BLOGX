@@ -1,27 +1,31 @@
 📝 Blog App – Backend API
 
-A production-ready backend for a modern blog application built with Node.js, Express, MongoDB, and Redis, featuring secure authentication, email verification, caching, and rate limiting.
+A production-ready, serverless-compatible backend for a modern blog application built with Node.js, Express, MongoDB, Upstash Redis, and ImageKit, featuring secure authentication, email verification, caching, and rate limiting.
+
+This backend is designed to run reliably on Vercel serverless functions and follows real-world production patterns.
 
 🚀 Features Overview
 🔐 Authentication & Security
 
 User registration & login (JWT)
 
-Email OTP verification (hashed & expiry-based)
+Email OTP verification (hashed + expiry-based)
 
 Welcome email after verification
 
 Forgot & reset password
 
-Redis-based auth rate limiting
+Redis (Upstash) based auth rate limiting
 
 Separate Admin authentication & permissions
+
+Role-safe middleware (user vs admin)
 
 🧑‍💻 User & Profile
 
 User profile management
 
-Avatar upload
+Avatar upload (ImageKit)
 
 Follow / unfollow users
 
@@ -35,7 +39,7 @@ Create, read, update, delete blogs
 
 Categories & tags
 
-Blog cover image upload
+Blog cover image upload (ImageKit CDN)
 
 Like / dislike blogs
 
@@ -43,7 +47,7 @@ Bookmark blogs
 
 Popular blogs
 
-Pagination & filtering
+Pagination, filtering & search
 
 💬 Comments System
 
@@ -55,15 +59,19 @@ Like / dislike comments
 
 Update & delete comments
 
+Ownership-based authorization
+
 ⚡ Performance & Scalability
 
-Redis caching (blogs & views)
+Upstash Redis caching (blog lists)
 
-Cache invalidation on write operations
+Version-based cache invalidation
 
 Redis-based rate limiting
 
-Optimized DB queries
+Optimized MongoDB queries (lean, indexes)
+
+Serverless-safe DB connection caching
 
 📧 Email System
 
@@ -81,24 +89,25 @@ Backend: Node.js, Express.js
 
 Database: MongoDB (Mongoose)
 
-Cache & Rate Limiting: Redis
+Cache & Rate Limiting: Upstash Redis (REST)
 
 Authentication: JWT, bcrypt
 
 Email: Brevo SMTP API
 
-File Uploads: Multer
+File Uploads: ImageKit + Multer (memory storage)
 
 Logging: Winston
 
 Validation: express-validator
 
+Deployment: Vercel (Serverless)
+
 📁 Folder Structure
 backend/
 │
 ├── config/
-│   ├── db.js                 # MongoDB connection
-│   └── redis.js              # Redis connection
+│   └── db.js                 # Serverless-safe MongoDB connection
 │
 ├── controllers/
 │   ├── adminAuthController.js
@@ -117,8 +126,8 @@ backend/
 │   ├── authMiddleware.js
 │   ├── errorMiddleware.js
 │   ├── loggerMiddleware.js
-│   ├── rateLimiter.js
-│   ├── uploadMiddleware.js
+│   ├── rateLimiter.js        # Upstash Redis limiter
+│   ├── uploadMiddleware.js   # Multer memory storage
 │   ├── validateMiddleware.js
 │   └── validateObjectId.js
 │
@@ -137,37 +146,33 @@ backend/
 │   ├── profileRoutes.js
 │   └── userRoutes.js
 │
-├── uploads/
-│   ├── avatars/
-│   └── blogs/
-│
 ├── utils/
-│   ├── cacheKey.js
+│   ├── cacheKey.js           # Cache key generator
 │   ├── generateOtp.js
 │   ├── generateToken.js
+│   ├── imagekit.js           # ImageKit config
 │   ├── logger.js
-│   ├── sendEmail.js
-│   └── syncViews.js
+│   └── sendEmail.js
 │
 ├── validators/
 │   ├── authValidators.js
 │   ├── blogValidators.js
 │   └── commentValidators.js
 │
-├── .env
-├── .gitignore
-├── checklist.md
-├── Testing.md
+├── vercel.json
+├── .env.example
 ├── package.json
-├── package-lock.json
 ├── README.md
-└── server.js
+└── server.js                 # Express app (exported, no listen)
+
+
+
 
 🔄 Authentication Flow (OTP)
 
 User registers
 
-Account created with isVerified = false
+Account created with isAccountVerified = false
 
 OTP generated, hashed, stored with expiry
 
@@ -179,16 +184,18 @@ Account marked verified
 
 Welcome email sent
 
-User can login
+User can log in
 
-⚡ Redis Usage
+⚡ Redis (Upstash) Usage
 🔹 Caching
 
-Blog list: blogs:*
+Blog list cache: blogs:*
 
-Single blog: blog:<blogId>
+Version-based cache invalidation
 
-View counters synced to DB
+No manual JSON.stringify / JSON.parse
+
+Serverless-safe REST calls
 
 🔹 Rate Limiting
 
@@ -206,45 +213,66 @@ Protected routes:
 
 /admin/login
 
-Redis atomic counters + TTL used.
+Uses Redis atomic counters with TTL.
 
 🔐 Environment Variables
-PORT=5000
+# Core
 MONGO_URI=your_mongodb_uri
 JWT_SECRET=your_jwt_secret
 
-REDIS_URL=your_redis_url
+# Upstash Redis
+UPSTASH_REDIS_REST_URL=your_upstash_url
+UPSTASH_REDIS_REST_TOKEN=your_upstash_token
 
+# Email (Brevo)
 BREVO_API_KEY=your_brevo_api_key
 SENDER_EMAIL=your_verified_sender_email
+
+# ImageKit
+IMAGEKIT_PUBLIC_KEY=your_public_key
+IMAGEKIT_PRIVATE_KEY=your_private_key
+IMAGEKIT_URL_ENDPOINT=your_url_endpoint
 
 ▶️ Run Locally
 npm install
 npm run dev
 
 
-Server:
+Local server:
 
 http://localhost:5000
 
-🧠 Design Decisions
 
-User & Admin models separated
+In production, the app is exported and executed by Vercel (no app.listen()).
 
-OTP & email verification before login
+🧠 Key Design Decisions
 
-Frontend notifications via toast (no backend notification table)
+Serverless-first architecture (Vercel)
+
+Express app exported instead of listening
+
+MongoDB connection caching for cold starts
+
+Upstash Redis instead of TCP Redis
+
+ImageKit instead of filesystem uploads
+
+Separate User & Admin models
+
+OTP-based email verification
 
 Redis fail-open strategy
 
-Modular controllers & middlewares
+Frontend notifications handled via toast (no DB notifications table)
 
-🚧 Future Enhancements (Optional)
+🚧 Future Enhancements
 
 OAuth (Google / GitHub)
 
 Admin dashboard UI
 
-Real-time notifications
+Real-time notifications (WebSockets / SSE)
 
-Automated tests
+Automated test coverage
+
+Search indexing (Elastic / Atlas Search)

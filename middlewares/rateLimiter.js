@@ -1,32 +1,36 @@
-const redis = require("../config/redis");
+
 
 const authRateLimiter = ({
-  windowSeconds = 900, // 15 minutes
-  maxRequests = 5, // max attempts
+  windowSeconds = 900,
+  maxRequests = 5,
   prefix = "auth",
 }) => {
   return async (req, res, next) => {
     try {
-      const identifier = req.ip || req.headers["x-forwarded-for"] || "unknown";
+      const ip =
+        req.headers["x-forwarded-for"]?.split(",")[0] ||
+        req.socket.remoteAddress ||
+        "unknown";
 
-      const key = `${prefix}:${identifier}`;
+      const key = `${prefix}:${ip}`;
 
-      const current = await redis.incr(key);
+      const current = await redis.get(key);
 
-      if (current === 1) {
-        await redis.expire(key, windowSeconds);
-      }
-
-      if (current > maxRequests) {
-        return res.status(429).json({
-          message: "Too many attempts. Please try again later.",
-        });
+      if (!current) {
+        await redis.set(key, 1, { ex: windowSeconds });
+      } else {
+        const count = await redis.incr(key);
+        if (count > maxRequests) {
+          return res.status(429).json({
+            message: "Too many attempts. Please try again later.",
+          });
+        }
       }
 
       next();
-    } catch (error) {
-      console.error("Rate limiter error:", error);
-      next(); // fail-open (do not block auth)
+    } catch (err) {
+      console.error("Rate limiter error:", err);
+      next(); // fail-open
     }
   };
 };

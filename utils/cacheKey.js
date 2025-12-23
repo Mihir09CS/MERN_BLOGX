@@ -1,10 +1,7 @@
-const crypto = require("crypto");
+const { createHash } = require("node:crypto");
 
 const buildCacheKey = (prefix, query) => {
-  const hash = crypto
-    .createHash("md5")
-    .update(JSON.stringify(query))
-    .digest("hex");
+  const hash = createHash("md5").update(JSON.stringify(query)).digest("hex");
 
   return `${prefix}:${hash}`;
 };

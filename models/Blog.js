@@ -18,8 +18,8 @@ const blogSchema = new mongoose.Schema(
 
     // ✅ FIX: store uploaded cover image path
     coverImage: {
-      type: String,
-      default: "/uploads/blogs/default.png",
+      url: { type: String},
+      fileId: { type: String },
     },
 
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
