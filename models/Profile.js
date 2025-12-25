@@ -1,4 +1,3 @@
-
 const mongoose = require("mongoose");
 
 const profileSchema = new mongoose.Schema(
@@ -16,9 +15,10 @@ const profileSchema = new mongoose.Schema(
       default: "",
     },
 
+    // ✅ ImageKit-compatible avatar structure
     avatar: {
-      type: String,
-      default: "",
+      url: { type: String, default: "" },
+      fileId: { type: String, default: "" },
     },
 
     socialLinks: {

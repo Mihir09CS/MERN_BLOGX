@@ -20,10 +20,9 @@ const getMyProfile = asyncHandler(async (req, res) => {
 
 // PUT /api/profile/me
 const updateMyProfile = asyncHandler(async (req, res) => {
-  const { bio, socialLinks } = req.body;
+  const { bio, socialLinks, avatarUrl, avatarFileId } = req.body;
 
   let profile = await Profile.findOne({ user: req.user._id });
-
   if (!profile) {
     profile = await Profile.create({ user: req.user._id });
   }
@@ -31,8 +30,11 @@ const updateMyProfile = asyncHandler(async (req, res) => {
   if (bio !== undefined) profile.bio = bio;
   if (socialLinks) profile.socialLinks = socialLinks;
 
-  if (req.file) {
-    profile.avatar = `/uploads/avatars/${req.file.filename}`;
+  if (avatarUrl && avatarFileId) {
+    profile.avatar = {
+      url: avatarUrl,
+      fileId: avatarFileId,
+    };
   }
 
   await profile.save();
@@ -43,6 +45,7 @@ const updateMyProfile = asyncHandler(async (req, res) => {
     data: profile,
   });
 });
+
 
 // GET /api/profile/:userId
 const getPublicProfile = asyncHandler(async (req, res) => {
@@ -56,32 +59,35 @@ const getPublicProfile = asyncHandler(async (req, res) => {
     throw new Error("Profile not found");
   }
 
-  res.json({ success: true, data: profile });
+  res.json({
+    success: true,
+    data: {
+      ...profile.toObject(),
+      followersCount: profile.followers.length,
+      followingCount: profile.following.length,
+    },
+  });
+
 });
 
 // PUT /api/profile/:userId/follow
 const toggleFollowProfile = asyncHandler(async (req, res) => {
+  const myUserId = req.user._id;
   const targetUserId = req.params.userId;
-  const myUserId = req.user._id.toString();
 
-  if (targetUserId === myUserId) {
+  if (myUserId.equals(targetUserId)) {
     res.status(400);
     throw new Error("You cannot follow yourself");
   }
 
-  // 🔹 Ensure my profile exists
   let myProfile = await Profile.findOne({ user: myUserId });
-  if (!myProfile) {
-    myProfile = await Profile.create({ user: myUserId });
-  }
+  if (!myProfile) myProfile = await Profile.create({ user: myUserId });
 
-  // 🔹 Ensure target profile exists
   let targetProfile = await Profile.findOne({ user: targetUserId });
-  if (!targetProfile) {
+  if (!targetProfile)
     targetProfile = await Profile.create({ user: targetUserId });
-  }
 
-  const isFollowing = myProfile.following.includes(targetUserId);
+  const isFollowing = myProfile.following.some((id) => id.equals(targetUserId));
 
   if (isFollowing) {
     myProfile.following.pull(targetUserId);
@@ -100,10 +106,88 @@ const toggleFollowProfile = asyncHandler(async (req, res) => {
   });
 });
 
+// GET /api/profile/me/following
+const getMyFollowing = asyncHandler(async (req, res) => {
+  const profile = await Profile.findOne({ user: req.user._id }).populate({
+    path: "following",
+    select: "name email",
+  });
+
+  if (!profile) {
+    res.status(404);
+    throw new Error("Profile not found");
+  }
+
+  res.json({
+    success: true,
+    count: profile.following.length,
+    data: profile.following,
+  });
+});
+
+
+// GET /api/profile/me/followers
+const getMyFollowers = asyncHandler(async (req, res) => {
+  const profile = await Profile.findOne({ user: req.user._id })
+    .populate("followers", "name email");
+
+  if (!profile) {
+    res.status(404);
+    throw new Error("Profile not found");
+  }
+
+  res.json({
+    success: true,
+    count: profile.followers.length,
+    data: profile.followers,
+  });
+});
+
+
+// Get public followers
+// GET /api/profile/:userId/followers
+const getFollowers = asyncHandler(async (req, res) => {
+  const profile = await Profile.findOne({ user: req.params.userId })
+    .populate("followers", "name email");
+
+  if (!profile) {
+    res.status(404);
+    throw new Error("Profile not found");
+  }
+
+  res.json({
+    success: true,
+    count: profile.followers.length,
+    data: profile.followers,
+  });
+});
+
+// ✅ Get public following
+// GET /api/profile/:userId/following
+const getFollowing = asyncHandler(async (req, res) => {
+  const profile = await Profile.findOne({ user: req.params.userId })
+    .populate("following", "name email");
+
+  if (!profile) {
+    res.status(404);
+    throw new Error("Profile not found");
+  }
+
+  res.json({
+    success: true,
+    count: profile.following.length,
+    data: profile.following,
+  });
+});
+
 
 module.exports = {
   getMyProfile,
   updateMyProfile,
   getPublicProfile,
   toggleFollowProfile,
+  getMyFollowing,
+  getMyFollowers,
+  getFollowers,
+  getFollowing,
 };

@@ -16,6 +16,7 @@ const commentRoutes = require("./routes/commentRoutes");
 const userRoutes = require("./routes/userRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const uploadRoutes =require("./routes/uploadRoutes");
 
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 const requestLogger = require("./middlewares/loggerMiddleware");
@@ -56,6 +57,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/blogs", blogRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/upload", uploadRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/admin", adminRoutes);
 
