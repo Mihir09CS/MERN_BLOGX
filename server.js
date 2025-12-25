@@ -27,7 +27,9 @@ const app = express();
 app.set("trust proxy", 1);
 
 // connect DB
-connectDB();
+(async () => {
+  await connectDB();
+})();
 
 // parsers
 app.use(express.json({ limit: "5mb" }));

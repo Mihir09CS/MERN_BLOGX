@@ -4,64 +4,81 @@ const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const User = require("../models/User");
 const Admin = require("../models/Admin");
-const connectDB = require("../config/db");
+
 // =====================
 // USER PROTECT
 // =====================
+
+
 const protectUser = asyncHandler(async (req, res, next) => {
-
-    await connectDB(); 
-
   const token = req.headers.authorization?.split(" ")[1];
+
   if (!token) {
-    res.status(401);
-    throw new Error("Not authorized, no token");
+    return res.status(401).json({
+      success: false,
+      message: "Not authorized, no token",
+    });
   }
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
   if (decoded.type !== "user") {
-    res.status(403);
-    throw new Error("User token required");
+    return res.status(403).json({
+      success: false,
+      message: "User token required",
+    });
   }
 
   const user = await User.findById(decoded.id).select("-password");
+
   if (!user) {
-    res.status(401);
-    throw new Error("User not found");
+    return res.status(401).json({
+      success: false,
+      message: "User not found or token invalid",
+    });
   }
 
   if (user.isBanned) {
-    res.status(403);
-    throw new Error("User is banned");
+    return res.status(403).json({
+      success: false,
+      message: "User is banned",
+    });
   }
 
   req.user = user;
   next();
 });
 
+
 // =====================
 // ADMIN PROTECT
 // =====================
 const protectAdmin = asyncHandler(async (req, res, next) => {
-    await connectDB(); 
   const token = req.headers.authorization?.split(" ")[1];
+
   if (!token) {
-    res.status(401);
-    throw new Error("Not authorized, no token");
+    return res.status(401).json({
+      success: false,
+      message: "Not authorized, no token",
+    });
   }
 
   const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
   if (decoded.type !== "admin") {
-    res.status(403);
-    throw new Error("Admin token required");
+    return res.status(403).json({
+      success: false,
+      message: "Admin token required",
+    });
   }
 
   const admin = await Admin.findById(decoded.id).select("-password");
+
   if (!admin) {
-    res.status(401);
-    throw new Error("Admin not found");
+    return res.status(401).json({
+      success: false,
+      message: "Admin not found",
+    });
   }
 
   req.admin = admin;
@@ -69,3 +86,4 @@ const protectAdmin = asyncHandler(async (req, res, next) => {
 });
 
 module.exports = { protectUser, protectAdmin };
+

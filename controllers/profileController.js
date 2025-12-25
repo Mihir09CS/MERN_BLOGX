@@ -20,7 +20,7 @@ const getMyProfile = asyncHandler(async (req, res) => {
 
 // PUT /api/profile/me
 const updateMyProfile = asyncHandler(async (req, res) => {
-  const { bio, socialLinks, avatarUrl, avatarFileId } = req.body;
+  const { bio, socialLinks, avatar } = req.body;
 
   let profile = await Profile.findOne({ user: req.user._id });
   if (!profile) {
@@ -30,11 +30,18 @@ const updateMyProfile = asyncHandler(async (req, res) => {
   if (bio !== undefined) profile.bio = bio;
   if (socialLinks) profile.socialLinks = socialLinks;
 
-  if (avatarUrl && avatarFileId) {
-    profile.avatar = {
-      url: avatarUrl,
-      fileId: avatarFileId,
-    };
+  // ImageKit avatar update
+  if (avatar?.url && avatar?.fileId) {
+    // delete old avatar from ImageKit
+    if (profile.avatar?.fileId) {
+      try {
+        await imagekit.deleteFile(profile.avatar.fileId);
+      } catch (err) {
+        console.warn("Old avatar delete failed");
+      }
+    }
+
+    profile.avatar = avatar;
   }
 
   await profile.save();
@@ -45,6 +52,7 @@ const updateMyProfile = asyncHandler(async (req, res) => {
     data: profile,
   });
 });
+
 
 
 // GET /api/profile/:userId
