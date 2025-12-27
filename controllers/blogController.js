@@ -1,16 +1,13 @@
 // controllers/blogController.js
 
 const redis = require("../utils/redis");
-const buildCacheKey = require("../utils/cacheKey");
+const { buildCacheKey, invalidateBlogCache } = require("../utils/cacheKey");
 const logger = require("../utils/logger");
 const asyncHandler = require("express-async-handler");
 const Blog = require("../models/Blog");
 const imagekit = require("../utils/imageKit");
 const sharp = require("sharp");
 
-const invalidateBlogCache = async () => {
-  await redis.incr("blogs:version");
-};
 
 const safeJsonParse = (value, fallback) => {
   if (typeof value === "string") {
@@ -229,6 +226,8 @@ const updateBlog = asyncHandler(async (req, res) => {
   }
 
   await blog.save();
+  // clear all blog list caches
+  await redis.delPattern("blogs:*");
 
   await invalidateBlogCache();
 
@@ -281,28 +280,28 @@ const likeBlog = asyncHandler(async (req, res) => {
     throw new Error("Blog not found");
   }
 
-  if (!blog.likes) blog.likes = [];
   const userId = req.user._id.toString();
+  const liked = blog.likes.includes(userId);
 
-  if (blog.likes.some((id) => id.toString() === userId)) {
-    blog.likes = blog.likes.filter((id) => id.toString() !== userId);
-    await blog.save();
-    return res.json({
-      success: true,
-      message: "Blog unliked",
-      likesCount: blog.likes.length,
-    });
+  if (liked) {
+    blog.likes.pull(userId);
   } else {
     blog.likes.push(userId);
-    blog.dislikes = blog.dislikes.filter((id) => id.toString() !== userId);
-    await blog.save();
-    return res.json({
-      success: true,
-      message: "Blog liked",
-      likesCount: blog.likes.length,
-    });
+    blog.dislikes.pull(userId);
   }
+
+  await blog.save();
+
+  // 🔥 REQUIRED
+  await invalidateBlogCache();
+
+  res.json({
+    success: true,
+    message: liked ? "Blog unliked" : "Blog liked",
+    likesCount: blog.likes.length,
+  });
 });
+
 
 // @desc Dislike / Undislike blog
 // @route PUT /api/blogs/:id/dislike
@@ -314,28 +313,27 @@ const dislikeBlog = asyncHandler(async (req, res) => {
     throw new Error("Blog not found");
   }
 
-  if (!blog.dislikes) blog.dislikes = [];
   const userId = req.user._id.toString();
+  const disliked = blog.dislikes.includes(userId);
 
-  if (blog.dislikes.some((id) => id.toString() === userId)) {
-    blog.dislikes = blog.dislikes.filter((id) => id.toString() !== userId);
-    await blog.save();
-    return res.json({
-      success: true,
-      message: "Blog undisliked",
-      dislikesCount: blog.dislikes.length,
-    });
+  if (disliked) {
+    blog.dislikes.pull(userId);
   } else {
     blog.dislikes.push(userId);
-    blog.likes = blog.likes.filter((id) => id.toString() !== userId);
-    await blog.save();
-    return res.json({
-      success: true,
-      message: "Blog disliked",
-      dislikesCount: blog.dislikes.length,
-    });
+    blog.likes.pull(userId);
   }
+
+  await blog.save();
+
+  // 🔥 REQUIRED
+  await invalidateBlogCache();
+
+  res.json({
+    success: true,
+    message: disliked ? "Blog undisliked" : "Blog disliked",
+  });
 });
+
 
 // @desc Bookmark / Unbookmark blog
 // @route PUT /api/blogs/:id/bookmark

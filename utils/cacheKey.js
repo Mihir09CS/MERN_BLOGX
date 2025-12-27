@@ -1,4 +1,5 @@
 const { createHash } = require("node:crypto");
+const redis = require("../utils/redis")
 
 const buildCacheKey = (prefix, query) => {
   const hash = createHash("md5").update(JSON.stringify(query)).digest("hex");
@@ -6,4 +7,11 @@ const buildCacheKey = (prefix, query) => {
   return `${prefix}:${hash}`;
 };
 
-module.exports = buildCacheKey;
+// increments version to invalidate all blog caches
+const invalidateBlogCache = async () => {
+  await redis.incr("blogs:version");
+};
+module.exports = {
+  buildCacheKey,
+  invalidateBlogCache,
+  };
