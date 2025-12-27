@@ -20,6 +20,7 @@ const uploadRoutes =require("./routes/uploadRoutes");
 
 const { notFound, errorHandler } = require("./middlewares/errorMiddleware");
 const requestLogger = require("./middlewares/loggerMiddleware");
+const ensureDB = require("./middlewares/dbMiddleware");
 
 const app = express();
 
@@ -27,9 +28,11 @@ const app = express();
 app.set("trust proxy", 1);
 
 // connect DB
-(async () => {
-  await connectDB();
-})();
+// (async () => {
+//   await connectDB();
+// })();
+
+app.use(ensureDB);
 
 // parsers
 app.use(express.json({ limit: "5mb" }));

@@ -1,3 +1,27 @@
+// const mongoose = require("mongoose");
+
+// let isConnected = false;
+
+// const connectDB = async () => {
+//   if (isConnected) return;
+
+//   try {
+//     const conn = await mongoose.connect(process.env.MONGO_URI, {
+//       bufferCommands: false,
+//     });
+
+//     isConnected = conn.connections[0].readyState === 1;
+//     console.log(`MongoDB Connected: ${conn.connection.host}`);
+//   } catch (error) {
+//     console.error("MongoDB connection failed:", error.message);
+//     throw error;
+//   }
+// };
+
+// module.exports = connectDB;
+
+
+// config/db.js
 const mongoose = require("mongoose");
 
 let isConnected = false;
@@ -5,18 +29,11 @@ let isConnected = false;
 const connectDB = async () => {
   if (isConnected) return;
 
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      bufferCommands: false,
-    });
+  const conn = await mongoose.connect(process.env.MONGO_URI, {
+    bufferCommands: false,
+  });
 
-    isConnected = conn.connections[0].readyState === 1;
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
-  } catch (error) {
-    console.error("MongoDB connection failed:", error.message);
-    throw error;
-  }
+  isConnected = conn.connections[0].readyState === 1;
 };
 
 module.exports = connectDB;
-
