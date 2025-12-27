@@ -1,17 +1,26 @@
-const { createHash } = require("node:crypto");
-const redis = require("../utils/redis")
+const redis = require("./upstashRedis");
+const crypto = require("crypto");
 
-const buildCacheKey = (prefix, query) => {
-  const hash = createHash("md5").update(JSON.stringify(query)).digest("hex");
+// build cache key
+const buildCacheKey = (prefix, params) => {
+  const hash = crypto
+    .createHash("sha256")
+    .update(JSON.stringify(params))
+    .digest("hex");
 
   return `${prefix}:${hash}`;
 };
 
-// increments version to invalidate all blog caches
+// invalidate blog cache
 const invalidateBlogCache = async () => {
-  await redis.incr("blogs:version");
+  try {
+    await redis.flushall(); // simple + safe
+  } catch (err) {
+    console.error("Cache invalidation failed:", err.message);
+  }
 };
+
 module.exports = {
   buildCacheKey,
   invalidateBlogCache,
-  };
+};

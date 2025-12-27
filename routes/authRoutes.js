@@ -1,5 +1,3 @@
-
-
 const express = require("express");
 const router = express.Router();
 
@@ -23,13 +21,16 @@ const validate = require("../middlewares/validateMiddleware");
 const authRateLimiter = require("../middlewares/rateLimiter");
 
 /* ===========================
-   USER AUTH ROUTES (LIMITED)
+   USER AUTH ROUTES
 =========================== */
 
 // Register (OTP email)
 router.post(
   "/register",
-  authRateLimiter({ prefix: "register", maxRequests: 5 }),
+  authRateLimiter({
+    prefix: "auth:user:register",
+    maxRequests: 3,
+  }),
   registerValidator,
   validate,
   register
@@ -38,44 +39,59 @@ router.post(
 // Login
 router.post(
   "/login",
-  authRateLimiter({ prefix: "login", maxRequests: 5 }),
+  authRateLimiter({
+    prefix: "auth:user:login",
+    maxRequests: 5,
+  }),
   loginValidator,
   validate,
   login
 );
 
-// Verify Email OTP
+// Verify Email OTP (stricter)
 router.post(
   "/verify-email",
-  authRateLimiter({ prefix: "verify-email", maxRequests: 5 }),
+  authRateLimiter({
+    prefix: "auth:user:verify-email",
+    maxRequests: 3,
+  }),
   verifyEmail
 );
 
-// Resend OTP (stricter)
+// Resend OTP (very strict)
 router.post(
   "/resend-otp",
-  authRateLimiter({ prefix: "resend-otp", maxRequests: 3 }),
+  authRateLimiter({
+    prefix: "auth:user:resend-otp",
+    maxRequests: 2,
+  }),
   resendOtp
 );
 
 // Forgot Password
 router.post(
   "/forgot-password",
-  authRateLimiter({ prefix: "forgot-password", maxRequests: 3 }),
+  authRateLimiter({
+    prefix: "auth:user:forgot-password",
+    maxRequests: 3,
+  }),
   forgotPassword
 );
 
-// Reset Password (token based, no limiter needed)
+// Reset Password (token based → no limiter)
 router.put("/reset-password/:token", resetPassword);
 
 /* ===========================
-   ADMIN AUTH ROUTES (STRICT)
+   ADMIN AUTH ROUTES
 =========================== */
 
 // Admin login (very strict)
 router.post(
   "/admin-login",
-  authRateLimiter({ prefix: "admin-login", maxRequests: 3 }),
+  authRateLimiter({
+    prefix: "auth:admin:login",
+    maxRequests: 3,
+  }),
   loginValidator,
   validate,
   adminLogin

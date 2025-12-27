@@ -1,7 +1,10 @@
 // controllers/blogController.js
 
-const redis = require("../utils/redis");
+const redis = require("../utils/upstashRedis");
+const { getCache, setCache } = require("../utils/cache");
 const { buildCacheKey, invalidateBlogCache } = require("../utils/cacheKey");
+
+
 const logger = require("../utils/logger");
 const asyncHandler = require("express-async-handler");
 const Blog = require("../models/Blog");
@@ -75,72 +78,42 @@ const createBlog = asyncHandler(async (req, res) => {
 // @access Public
 const getBlogs = asyncHandler(async (req, res) => {
   const page = Number(req.query.page) || 1;
-  const limit = Math.min(Number(req.query.limit) || 10, 50);
+  const limit = 10;
   const skip = (page - 1) * limit;
 
-  const version = (await redis.get("blogs:version")) || 1;
+  const cacheKey = buildCacheKey("blogs", { page });
 
-  const cacheKey = buildCacheKey("blogs", {
-    version,
-    page,
-    limit,
-    query: req.query,
+const cached = await redis.get(cacheKey);
+if (cached) {
+  return res.json({
+    ...cached,
+    source: "cache",
   });
+}
 
-  // 🔹 1. READ FROM CACHE (DO NOT PARSE TWICE)
-  const cached = await redis.get(cacheKey);
-  if (cached) {
-    return res.json({
-      ...cached, // 🔥 cached is ALREADY an object
-      source: "cache",
-    });
-  }
-
-  // 🔹 2. BUILD QUERY
-  const query = {};
-
-  if (req.query.search) {
-    query.$text = { $search: req.query.search };
-  }
-
-  if (req.query.author) {
-    query.author = req.query.author;
-  }
-
-  if (req.query.category) {
-    query.category = req.query.category;
-  }
-
-  if (req.query.tag) {
-    query.tags = { $in: [req.query.tag] };
-  }
-
-  // 🔹 3. DB QUERY
-  const total = await Blog.countDocuments(query);
-
-  const blogs = await Blog.find(query)
+  // 2️⃣ Fetch from DB
+  const total = await Blog.countDocuments({ isPublished: true });
+  const blogs = await Blog.find({ isPublished: true })
     .populate("author", "name email")
     .sort({ createdAt: -1 })
     .skip(skip)
-    .limit(limit)
-    .lean();
-
-  const blogsWithCounts = blogs.map((blog) => ({
-    ...blog,
-    likesCount: blog.likes?.length || 0,
-  }));
+    .limit(limit);
 
   const response = {
     success: true,
     page,
     totalPages: Math.ceil(total / limit),
     total,
-    blogs: blogsWithCounts,
+    blogs: blogs.map((b) => ({
+      ...b.toObject(),
+      likesCount: b.likes.length,
+    })),
   };
 
-  // 🔹 4. SAVE TO CACHE (STRINGIFY ONCE)
-  await redis.set(cacheKey, response);
+  // 3️⃣ Store in cache
+  await redis.set(cacheKey, JSON.stringify(response), { ex: 60 });
 
+  // 4️⃣ Respond
   res.json({
     ...response,
     source: "db",
@@ -227,7 +200,7 @@ const updateBlog = asyncHandler(async (req, res) => {
 
   await blog.save();
   // clear all blog list caches
-  await redis.delPattern("blogs:*");
+
 
   await invalidateBlogCache();
 
