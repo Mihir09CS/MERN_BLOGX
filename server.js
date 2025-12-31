@@ -28,9 +28,18 @@ const app = express();
 app.set("trust proxy", 1);
 
 // connect DB
-(async () => {
-  await connectDB();
-})();
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("DB connection failed", err);
+    res.status(500).json({
+      success: false,
+      message: "Database unavailable",
+    });
+  }
+});
 
 
 
