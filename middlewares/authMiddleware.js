@@ -12,7 +12,7 @@ const connectDB = require("../config/db")
 
 
 const protectUser = asyncHandler(async (req, res, next) => {
-  // await connectDB(); 
+  await connectDB(); 
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -56,7 +56,7 @@ const protectUser = asyncHandler(async (req, res, next) => {
 // ADMIN PROTECT
 // =====================
 const protectAdmin = asyncHandler(async (req, res, next) => {
-  // await connectDB(); 
+  await connectDB(); 
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
