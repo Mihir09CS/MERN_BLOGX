@@ -196,47 +196,6 @@ const likeComment = asyncHandler(async (req, res) => {
 });
 
 
-
-// Toggle dislike (mirror of like)
-const dislikeComment = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const commentId = req.params.id;
-
-  const comment = await Comment.findById(commentId);
-  if (!comment) {
-    return res.status(404).json({ success: false, message: "Comment not found" });
-  }
-
-  // remove user from likes if present
-  comment.likes = comment.likes.filter(
-    (id) => id.toString() !== userId.toString()
-  );
-
-  // toggle dislike
-  const alreadyDisliked = comment.dislikes.some(
-    (id) => id.toString() === userId.toString()
-  );
-
-  if (alreadyDisliked) {
-    comment.dislikes = comment.dislikes.filter(
-      (id) => id.toString() !== userId.toString()
-    );
-  } else {
-    comment.dislikes.push(userId);
-  }
-
-  await comment.save();
-
-  return res.json({
-    success: true,
-    message: alreadyDisliked ? "Dislike removed" : "Comment disliked",
-    likesCount: comment.likes.length,
-    dislikesCount: comment.dislikes.length,
-  });
-});
-
-
-
 // ****************************************
 
 // ****************************************
@@ -279,7 +238,6 @@ module.exports = {
   updateComment,
   deleteComment,
   likeComment,
-  dislikeComment,
   replyToComment,
 };
 

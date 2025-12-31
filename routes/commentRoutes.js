@@ -50,10 +50,6 @@ router.delete("/:id", protectUser, validateObjectId("id"), deleteComment);
 // LIKE/UNLIKE comment (private)
 router.put("/:id/like", protectUser, validateObjectId("id"), likeComment);
 
-// DISLIKE/UNDISLIKE comment (private)  <-- new route
-router.put("/:id/dislike", protectUser, validateObjectId("id"), dislikeComment);
-
-
 // Reply to a comment
 router.post("/:id/reply", protectUser, replyToComment);
 
