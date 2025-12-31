@@ -1,23 +1,16 @@
 const mongoose = require("mongoose");
 
-let cached = global.mongoose;
-
-if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
-}
+let isConnected = false;
 
 const connectDB = async () => {
-  if (cached.conn) return cached.conn;
+  if (isConnected) return;
 
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGO_URI, {
-      bufferCommands: false,
-      maxPoolSize: 10,
-    });
-  }
+  const conn = await mongoose.connect(process.env.MONGO_URI, {
+    dbName: "Blog_APP_X",
+  });
 
-  cached.conn = await cached.promise;
-  return cached.conn;
+  isConnected = true;
+  console.log("MongoDB Connected:", conn.connection.host);
 };
 
 module.exports = connectDB;

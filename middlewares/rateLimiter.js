@@ -1,6 +1,6 @@
 const redis = require("../utils/upstashRedis");
 
-const authRateLimiter = ({ windowSeconds = 900, maxRequests = 5, prefix }) => {
+const authRateLimiter = ({ windowSeconds = 900, maxRequests = 10, prefix }) => {
   return async (req, res, next) => {
     try {
       const ip =
@@ -8,7 +8,7 @@ const authRateLimiter = ({ windowSeconds = 900, maxRequests = 5, prefix }) => {
         req.socket.remoteAddress ||
         "unknown";
 
-      const key = `${prefix}:${ip}`;
+      const key = `${prefix}:${ip}`;  
 
       const count = await redis.incr(key);
 
