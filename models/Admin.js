@@ -19,10 +19,16 @@ const adminSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    
+
     permissions: {
       type: [String],
-      default: ["MANAGE_USERS", "MANAGE_BLOGS"],
+      default: [
+        "MANAGE_USERS",
+        "MANAGE_BLOGS",
+        "MANAGE_COMMENTS",
+        "MANAGE_REPORTS",
+        "VIEW_LOGS",
+      ],
     },
   },
   { timestamps: true }

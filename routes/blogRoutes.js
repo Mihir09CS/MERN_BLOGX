@@ -10,6 +10,7 @@ const {
   deleteBlog,
   likeBlog,
   dislikeBlog,
+  reportBlog,
   bookmarkBlog,
   getMyBlogs,
   getBookmarkedBlogs,
@@ -51,6 +52,9 @@ router.post(
   validate,
   createBlog
 );
+
+router.post("/:id/report", protectUser, validateObjectId("id"), reportBlog);
+
 
 // Update blog (private - author or admin) with optional image
 router.put(

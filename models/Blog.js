@@ -18,7 +18,7 @@ const blogSchema = new mongoose.Schema(
 
     // ✅ FIX: store uploaded cover image path
     coverImage: {
-      url: { type: String},
+      url: { type: String },
       fileId: { type: String },
     },
 
@@ -29,7 +29,18 @@ const blogSchema = new mongoose.Schema(
 
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
 
-    isPublished: { type: Boolean, default: true },
+    visibility: {
+      type: String,
+      enum: ["active", "removed"],
+      default: "active",
+    },
+    removedAt: {
+      type: Date,
+    },
+    removedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Admin",
+    },
   },
   { timestamps: true }
 );

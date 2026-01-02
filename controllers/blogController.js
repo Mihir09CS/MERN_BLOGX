@@ -8,6 +8,7 @@ const { buildCacheKey, invalidateBlogCache } = require("../utils/cacheKey");
 const logger = require("../utils/logger");
 const asyncHandler = require("express-async-handler");
 const Blog = require("../models/Blog");
+const BlogReport = require("../models/BlogReport")
 const imagekit = require("../utils/imageKit");
 const sharp = require("sharp");
 
@@ -92,12 +93,15 @@ if (cached) {
 }
 
   // 2️⃣ Fetch from DB
-  const total = await Blog.countDocuments({ isPublished: true });
-  const blogs = await Blog.find({ isPublished: true })
-    .populate("author", "name email")
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(limit);
+const filter = { visibility: "active" };
+
+const total = await Blog.countDocuments(filter);
+const blogs = await Blog.find(filter)
+  .populate("author", "name email")
+  .sort({ createdAt: -1 })
+  .skip(skip)
+  .limit(limit);
+
 
   const response = {
     success: true,
@@ -124,10 +128,10 @@ if (cached) {
 // @route GET /api/blogs/:id
 // @access Public
 const getBlogById = asyncHandler(async (req, res) => {
-  const blog = await Blog.findByIdAndUpdate(
-    req.params.id,
-    { $inc: { views: 1 } },
-    { new: true }
+  const blog = await Blog.findOneAndUpdate(
+  { _id: req.params.id, visibility: "active" },
+  { $inc: { views: 1 } },
+  { new: true }
   ).populate("author", "name email");
 
   if (!blog) {
@@ -247,7 +251,11 @@ const deleteBlog = asyncHandler(async (req, res) => {
 // @route PUT /api/blogs/:id/like
 // @access Private
 const likeBlog = asyncHandler(async (req, res) => {
-  const blog = await Blog.findById(req.params.id);
+  const blog = await Blog.findOne({
+    _id: req.params.id,
+    visibility: "active",
+  });
+
   if (!blog) {
     res.status(404);
     throw new Error("Blog not found");
@@ -308,6 +316,7 @@ const dislikeBlog = asyncHandler(async (req, res) => {
 });
 
 
+
 // @desc Bookmark / Unbookmark blog
 // @route PUT /api/blogs/:id/bookmark
 // @access Private
@@ -340,9 +349,11 @@ const bookmarkBlog = asyncHandler(async (req, res) => {
 // @route GET /api/blogs/me/blogs
 // @access Private
 const getMyBlogs = asyncHandler(async (req, res) => {
-  const blogs = await Blog.find({ author: req.user._id }).sort({
-    createdAt: -1,
-  });
+  const blogs = await Blog.find({ author: req.user._id })
+    .select("+visibility")
+    .sort({
+      createdAt: -1,
+    });
   res.json({ success: true, blogs });
 });
 
@@ -361,7 +372,7 @@ const getBookmarkedBlogs = asyncHandler(async (req, res) => {
 // @route GET /api/blogs/popular
 // @access Public
 const getPopularBlogs = asyncHandler(async (req, res) => {
-  const blogs = await Blog.find()
+  const blogs = await Blog.find({ visibility: "active" })
     .populate("author", "name email")
     .sort({ views: -1, likes: -1 })
     .limit(10);
@@ -374,6 +385,51 @@ const getPopularBlogs = asyncHandler(async (req, res) => {
   res.json({ success: true, blogs: blogsWithCounts });
 });
 
+
+const reportBlog = asyncHandler(async (req, res) => {
+  const { reason, message } = req.body;
+
+  if (!reason) {
+    res.status(400);
+    throw new Error("Report reason is required");
+  }
+
+  const blog = await Blog.findOne({
+    _id: req.params.id,
+    visibility: "active",
+  });
+
+  if (!blog) {
+    res.status(404);
+    throw new Error("Blog not found or not active");
+  }
+
+  try {
+    await BlogReport.create({
+      blog: blog._id,
+      reporter: req.user._id,
+      reason,
+      message,
+    });
+  } catch (err) {
+ 
+    // Duplicate report protection
+    if (err.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "You have already reported this blog",
+      });
+    }
+    throw err;
+  }
+
+  res.status(201).json({
+    success: true,
+    message: "Blog reported successfully",
+  });
+});
+
+
 module.exports = {
   createBlog,
   getBlogs,
@@ -382,6 +438,7 @@ module.exports = {
   deleteBlog,
   likeBlog,
   dislikeBlog,
+  reportBlog,
   bookmarkBlog,
   getMyBlogs,
   getBookmarkedBlogs,

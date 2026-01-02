@@ -1,9 +1,17 @@
 // controllers/adminController.js
 const logger = require("../utils/logger");
 const asyncHandler = require("express-async-handler");
+
+const redis = require("../utils/upstashRedis");
+const { getCache, setCache } = require("../utils/cache");
+const { buildCacheKey, invalidateBlogCache } = require("../utils/cacheKey");
+
+const logAdminAction = require("../utils/adminLogger");
+
 const User = require("../models/User");
 const Blog = require("../models/Blog");
-// **
+const BlogReport = require("../models/BlogReport");
+const AdminActionLog = require("../models/AdminActionLog");
 const Comment = require("../models/Comment");
 // **
 
@@ -62,18 +70,93 @@ const getAllUsers = asyncHandler(async (req, res) => {
 // 1️⃣ Get All Blogs (with filters)
 // GET /api/admin/blogs?isPublished=true&category=Tech
 const getAllBlogsAdmin = asyncHandler(async (req, res) => {
-  const { isPublished, category } = req.query;
+  const { visibility, category } = req.query;
   const query = {};
-  if (isPublished !== undefined) query.isPublished = isPublished === "true";
+  if (visibility) query.visibility = visibility;
   if (category) query.category = category;
+
 
   const blogs = await Blog.find(query).populate("author", "name email");
   res.json({ success: true, count: blogs.length, blogs });
 });
 
 //***************************************************************** 
+// remove blog
+const removeBlogAdmin = asyncHandler(async (req, res) => {
+  const blog = await Blog.findById(req.params.id);
+
+  if (!blog) {
+    res.status(404);
+    throw new Error("Blog not found");
+  }
+
+  if (blog.visibility === "removed") {
+    return res.status(409).json({
+      success: false,
+      message: "Blog is already removed",
+    });
+  }
+
+  blog.visibility = "removed";
+  blog.removedAt = new Date();
+  blog.removedBy = req.admin._id;
+
+  await blog.save();
+  await invalidateBlogCache();
+
+  await logAdminAction({
+    admin: req.admin._id,
+    action: "BLOG_REMOVED",
+    targetType: "Blog",
+    targetId: blog._id,
+    meta: { title: blog.title },
+  });
 
 
+  res.json({
+    success: true,
+    message: "Blog removed by admin",
+  });
+});
+
+
+// Restore blog
+const restoreBlogAdmin = asyncHandler(async (req, res) => {
+  const blog = await Blog.findById(req.params.id);
+
+  if (!blog) {
+    res.status(404);
+    throw new Error("Blog not found");
+  }
+
+  if (blog.visibility === "active") {
+    return res.status(409).json({
+      success: false,
+      message: "Blog is already active",
+    });
+  }
+
+  blog.visibility = "active";
+  blog.removedAt = null;
+  blog.removedBy = null;
+
+  await blog.save();
+  await invalidateBlogCache();
+
+
+  await logAdminAction({
+    admin: req.admin._id,
+    action: "BLOG_RESTORED",
+    targetType: "Blog",
+    targetId: blog._id,
+    meta: { title: blog.title },
+  });
+
+  res.json({
+    success: true,
+    message: "Blog restored successfully",
+  });
+});
 
 
 // GET /api/admin/users/:id
@@ -97,47 +180,6 @@ const getUserByIdAdmin = asyncHandler(async (req, res) => {
 });
 
 
-
-
-//***************************************************************** 
-// 2️⃣ Approve / Unpublish Blog
-// PATCH /api/admin/blogs/:id/publish
-
-const togglePublishBlog = asyncHandler(async (req, res) => {
-  const blog = await Blog.findById(req.params.id);
-  if (!blog) {
-    res.status(404);
-    throw new Error("Blog not found");
-  }
-
-  blog.isPublished = !blog.isPublished;
-  await blog.save();
-
-  res.json({ success: true, message: `Blog ${blog.isPublished ? "published" : "unpublished"} successfully` });
-});
-
-//***************************************************************** 
-
-// @desc    Update blog status (approve/reject/publish)
-// @route   PUT /api/admin/blogs/:id/status
-// @access  Private/Admin
-const updateBlogStatus = asyncHandler(async (req, res) => {
-  const { status } = req.body; // expected: "approved", "rejected", "published"
-  const blog = await Blog.findById(req.params.id);
-
-  if (!blog) {
-    res.status(404);
-    throw new Error("Blog not found");
-  }
-
-  blog.status = status;
-  await blog.save();
-
-  res.json({ message: "Blog status updated", blog });
-});
-
-//***************************************************************** 
-
 // PATCH /api/admin/users/:id/ban
 // body: { reason?: string }
 const banUser = asyncHandler(async (req, res) => {
@@ -155,6 +197,15 @@ const banUser = asyncHandler(async (req, res) => {
   user.bannedAt = new Date();
   user.banReason = reason || "Policy violation";
   await user.save();
+
+  await logAdminAction({
+    admin: req.admin._id,
+    action: "USER_BANNED",
+    targetType: "User",
+    targetId: user._id,
+    meta: { reason: user.banReason },
+  });
+
   logger.warn(
     `Admin ${req.admin._id} banned user ${user._id}, reason=${user.banReason}`
   );
@@ -183,6 +234,14 @@ const unbanUser = asyncHandler(async (req, res) => {
   user.banReason = null;
   await user.save();
 
+  await logAdminAction({
+    admin: req.admin._id,
+    action: "USER_UNBANNED",
+    targetType: "User",
+    targetId: user._id,
+  });
+
+
   res.json({ success: true, message: "User unbanned" });
 });
 
@@ -197,6 +256,16 @@ const deleteBlogAdmin = asyncHandler(async (req, res) => {
   }
   await blog.deleteOne();
   logger.warn(`Admin ${req.admin._id} deleted blog ${blog._id}`);
+
+  await logAdminAction({
+    admin: req.admin._id,
+    action: "BLOG_DELETED",
+    targetType: "Blog",
+    targetId: blog._id,
+    meta: { title: blog.title },
+  });
+
+  await invalidateBlogCache();
 
   res.json({ success: true, message: "Blog deleted by admin" });
 });
@@ -225,6 +294,14 @@ const deleteUserByAdmin = asyncHandler(async (req, res) => {
   }
 
   await user.deleteOne();
+  await logAdminAction({
+    admin: req.admin._id,
+    action: "USER_DELETED",
+    targetType: "User",
+    targetId: user._id,
+    meta: { cascade },
+  });
+
   logger.warn(
     `Admin ${req.admin._id} deleted user ${user._id}, cascade=${cascade}`
   );
@@ -260,6 +337,80 @@ const deleteCommentAdmin = asyncHandler(async (req, res) => {
   res.json({ success: true, message: "Comment deleted by admin" });
 });
 
+
+// GET /api/admin/reports
+// Query: status=pending|reviewed
+const getBlogReports = asyncHandler(async (req, res) => {
+  const filter = {};
+  if (req.query.status) filter.status = req.query.status;
+
+  const reports = await BlogReport.find(filter)
+    .populate("blog", "title visibility")
+    .populate("reporter", "name email")
+    .sort({ createdAt: -1 });
+
+  res.json({
+    success: true,
+    count: reports.length,
+    reports,
+  });
+});
+
+// PATCH /api/admin/reports/:id/review
+const reviewBlogReport = asyncHandler(async (req, res) => {
+  const report = await BlogReport.findById(req.params.id).populate("blog");
+
+  if (!report) {
+    res.status(404);
+    throw new Error("Report not found");
+  }
+
+  if (report.status === "reviewed") {
+    return res.status(409).json({
+      success: false,
+      message: "Report already reviewed",
+    });
+  }
+
+  // Optional: auto-remove blog if admin decides (manual UI trigger preferred)
+  // Example (commented):
+  // report.blog.visibility = "removed";
+  // await report.blog.save();
+
+  report.status = "reviewed";
+  await report.save();
+  await logAdminAction({
+    admin: req.admin._id,
+    action: "REPORT_REVIEWED",
+    targetType: "Report",
+    targetId: report._id,
+    meta: { blogId: report.blog._id, reason: report.reason },
+  });
+
+  res.json({
+    success: true,
+    message: "Report marked as reviewed",
+  });
+});
+
+
+
+const getAdminLogs = asyncHandler(async (req, res) => {
+  const logs = await AdminActionLog.find()
+    .populate("admin", "name email")
+    .sort({ createdAt: -1 })
+    .limit(50);
+
+  res.json({
+    success: true,
+    count: logs.length,
+    logs,
+  });
+});
+
+
+
+
 // *****************************************************************
 // 🛠 Analytics / Dashboard
 // GET /api/admin/stats
@@ -267,7 +418,7 @@ const getAdminStats = asyncHandler(async (req, res) => {
   const totalUsers = await User.countDocuments();
   const totalBlogs = await Blog.countDocuments();
   const totalComments = await Comment.countDocuments();
-  const publishedBlogs = await Blog.countDocuments({ isPublished: true });
+  const activeBlogs = await Blog.countDocuments({ visibility: "active" });
   const bannedUsers = await User.countDocuments({ isBanned: true });
   logger.info(`Admin ${req.admin._id} accessed dashboard stats`);
 
@@ -277,7 +428,7 @@ const getAdminStats = asyncHandler(async (req, res) => {
       totalUsers,
       bannedUsers,
       totalBlogs,
-      publishedBlogs,
+      activeBlogs,
       totalComments,
     },
   });
@@ -291,12 +442,15 @@ module.exports = {
   getUserByIdAdmin,
   banUser,
   unbanUser,
+  removeBlogAdmin,
+  restoreBlogAdmin,
   deleteUserByAdmin,
   getAllBlogsAdmin,
-  togglePublishBlog,
-  updateBlogStatus,
   deleteBlogAdmin,
   getAllCommentsAdmin,
   deleteCommentAdmin,
+  getBlogReports,
+  reviewBlogReport,
+  getAdminLogs,
   getAdminStats
 };
