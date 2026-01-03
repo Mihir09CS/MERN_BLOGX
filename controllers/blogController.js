@@ -74,34 +74,64 @@ const createBlog = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc Get all blogs (with Redis cache)
-// @route GET /api/blogs
+// @desc Get all blogs (with filters, search, sort)
+// @route GET /api/blogs?search=react&category=Technology&sort=-views&page=1
 // @access Public
 const getBlogs = asyncHandler(async (req, res) => {
   const page = Number(req.query.page) || 1;
-  const limit = 10;
+  const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
+  
+  // ✅ Get query parameters
+  const { search, category, sort } = req.query;
 
-  const cacheKey = buildCacheKey("blogs", { page });
+  // ✅ Build dynamic filter
+  const filter = { visibility: "active" };
 
-const cached = await redis.get(cacheKey);
-if (cached) {
-  return res.json({
-    ...cached,
-    source: "cache",
-  });
-}
+  // Search in title and content
+  if (search) {
+    filter.$or = [
+      { title: { $regex: search, $options: "i" } },
+      { content: { $regex: search, $options: "i" } },
+      { excerpt: { $regex: search, $options: "i" } },
+    ];
+  }
 
-  // 2️⃣ Fetch from DB
-const filter = { visibility: "active" };
+  // Filter by category
+  if (category) {
+    filter.category = category;
+  }
 
-const total = await Blog.countDocuments(filter);
-const blogs = await Blog.find(filter)
-  .populate("author", "name email")
-  .sort({ createdAt: -1 })
-  .skip(skip)
-  .limit(limit);
+  // ✅ Build dynamic sort
+  let sortQuery = { createdAt: -1 }; // default: newest first
 
+  if (sort) {
+    const sortField = sort.startsWith("-") ? sort.slice(1) : sort;
+    const sortOrder = sort.startsWith("-") ? -1 : 1;
+    sortQuery = { [sortField]: sortOrder };
+  }
+
+  // ✅ Cache key includes all filters
+  const cacheKey = buildCacheKey("blogs", { page, search, category, sort });
+  
+  // Check cache
+  const cached = await redis.get(cacheKey);
+  if (cached) {
+    const parsedCache = typeof cached === "string" ? JSON.parse(cached) : cached;
+    return res.json({
+      ...parsedCache,
+      source: "cache",
+    });
+  }
+
+  // Fetch from DB with filters
+  const total = await Blog.countDocuments(filter);
+  const blogs = await Blog.find(filter)
+    .populate("author", "name email")
+    .sort(sortQuery)
+    .skip(skip)
+    .limit(limit)
+    .lean(); // Use lean for better performance
 
   const response = {
     success: true,
@@ -109,20 +139,20 @@ const blogs = await Blog.find(filter)
     totalPages: Math.ceil(total / limit),
     total,
     blogs: blogs.map((b) => ({
-      ...b.toObject(),
-      likesCount: b.likes.length,
+      ...b,
+      likesCount: b.likes?.length || 0,
     })),
   };
 
-  // 3️⃣ Store in cache
-  await redis.set(cacheKey, JSON.stringify(response), { ex: 60 });
+  // Store in cache (shorter TTL for filtered results)
+  await redis.set(cacheKey, JSON.stringify(response), { ex: 30 });
 
-  // 4️⃣ Respond
   res.json({
     ...response,
     source: "db",
   });
 });
+
 
 // @desc Get single blog (with Redis views)
 // @route GET /api/blogs/:id
