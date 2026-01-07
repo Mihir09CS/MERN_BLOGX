@@ -10,6 +10,7 @@ const {
   deleteBlog,
   likeBlog,
   dislikeBlog,
+  toggleComments,
   reportBlog,
   bookmarkBlog,
   getMyBlogs,
@@ -37,7 +38,6 @@ router.get("/popular", getPopularBlogs);
 // Private routes (must come BEFORE ":id")
 router.get("/me/blogs", protectUser, getMyBlogs);
 
-
 router.get("/me/bookmarks", protectUser, getBookmarkedBlogs);
 
 // Single blog (public)
@@ -52,6 +52,16 @@ router.post(
   validate,
   createBlog
 );
+
+
+// Toggle comments (author only)
+router.put(
+  "/:id/toggle-comments",
+  protectUser,
+  validateObjectId("id"),
+  toggleComments
+);
+
 
 router.post("/:id/report", protectUser, validateObjectId("id"), reportBlog);
 

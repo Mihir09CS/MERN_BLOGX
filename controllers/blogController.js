@@ -450,6 +450,35 @@ const reportBlog = asyncHandler(async (req, res) => {
 });
 
 
+// Add this new controller function
+const toggleComments = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+
+    if (!blog) {
+      return res.status(404).json({ message: 'Blog not found' });
+    }
+
+    // Check if user is the author
+    if (blog.author.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the author can toggle comments' });
+    }
+
+    blog.commentsEnabled = !blog.commentsEnabled;
+    await blog.save();
+
+    res.json({
+      message: `Comments ${blog.commentsEnabled ? 'enabled' : 'disabled'} successfully`,
+      commentsEnabled: blog.commentsEnabled
+    });
+  } catch (error) {
+    console.error('Toggle comments error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+
+
 module.exports = {
   createBlog,
   getBlogs,
@@ -458,6 +487,7 @@ module.exports = {
   deleteBlog,
   likeBlog,
   dislikeBlog,
+  toggleComments,
   reportBlog,
   bookmarkBlog,
   getMyBlogs,

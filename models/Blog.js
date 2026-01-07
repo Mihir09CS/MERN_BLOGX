@@ -28,7 +28,7 @@ const blogSchema = new mongoose.Schema(
     views: { type: Number, default: 0 },
 
     comments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Comment" }],
-
+    commentsEnabled: { type: Boolean, default: true }, // NEW FIELD
     visibility: {
       type: String,
       enum: ["active", "removed"],

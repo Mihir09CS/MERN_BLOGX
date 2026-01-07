@@ -9,7 +9,6 @@ const {
   updateComment,
   deleteComment,
   likeComment,
-  dislikeComment,
   replyToComment,
 } = require("../controllers/commentController");
 
