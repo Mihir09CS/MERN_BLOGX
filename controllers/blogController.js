@@ -27,32 +27,21 @@ const safeJsonParse = (value, fallback) => {
 // @desc Create new blog
 // @route POST /api/blogs
 // @access Private
+
 const createBlog = asyncHandler(async (req, res) => {
-  const { title, content, category, tags, excerpt } = req.body;
+  const {
+    title,
+    content,
+    category,
+    tags,
+    excerpt,
+    coverImageUrl,
+    coverImageFileId,
+  } = req.body;
 
   if (!title || !content) {
     res.status(400);
     throw new Error("Title and content are required");
-  }
-
-  let coverImage = null;
-
-  if (req.file) {
-    const optimizedBuffer = await sharp(req.file.buffer)
-      .resize({ width: 1280 })
-      .jpeg({ quality: 75 })
-      .toBuffer();
-
-    const uploadResult = await imagekit.upload({
-      file: optimizedBuffer.toString("base64"),
-      fileName: `blog-${Date.now()}.jpg`,
-      folder: "/blogs",
-    });
-
-    coverImage = {
-      url: uploadResult.url,
-      fileId: uploadResult.fileId,
-    };
   }
 
   const blog = await Blog.create({
@@ -62,7 +51,12 @@ const createBlog = asyncHandler(async (req, res) => {
     author: req.user._id,
     category,
     tags: tags ? (typeof tags === "string" ? JSON.parse(tags) : tags) : [],
-    coverImage,
+    coverImage: coverImageUrl
+      ? {
+          url: coverImageUrl,
+          fileId: coverImageFileId,
+        }
+      : null,
   });
 
   await invalidateBlogCache();
@@ -74,6 +68,8 @@ const createBlog = asyncHandler(async (req, res) => {
   });
 });
 
+
+
 // @desc Get all blogs (with filters, search, sort)
 // @route GET /api/blogs?search=react&category=Technology&sort=-views&page=1
 // @access Public
@@ -81,7 +77,7 @@ const getBlogs = asyncHandler(async (req, res) => {
   const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
   const skip = (page - 1) * limit;
-  
+
   // ✅ Get query parameters
   const { search, category, sort } = req.query;
 
@@ -96,12 +92,10 @@ const getBlogs = asyncHandler(async (req, res) => {
       { excerpt: { $regex: search, $options: "i" } },
     ];
   }
-
-  // Filter by category
+  // ✅ FIXED: Case-insensitive category filter
   if (category) {
-    filter.category = category;
+    filter.category = { $regex: `^${category}$`, $options: "i" }; // Case-insensitive exact match
   }
-
   // ✅ Build dynamic sort
   let sortQuery = { createdAt: -1 }; // default: newest first
 
@@ -113,11 +107,12 @@ const getBlogs = asyncHandler(async (req, res) => {
 
   // ✅ Cache key includes all filters
   const cacheKey = buildCacheKey("blogs", { page, search, category, sort });
-  
+
   // Check cache
   const cached = await redis.get(cacheKey);
   if (cached) {
-    const parsedCache = typeof cached === "string" ? JSON.parse(cached) : cached;
+    const parsedCache =
+      typeof cached === "string" ? JSON.parse(cached) : cached;
     return res.json({
       ...parsedCache,
       source: "cache",
@@ -183,6 +178,7 @@ const getBlogById = asyncHandler(async (req, res) => {
 // @desc Update blog with automatic old cover image deletion
 // @route PUT /api/blogs/:id
 // @access Private (author or admin)
+
 const updateBlog = asyncHandler(async (req, res) => {
   const blog = await Blog.findById(req.params.id);
 
@@ -196,7 +192,15 @@ const updateBlog = asyncHandler(async (req, res) => {
     throw new Error("Not authorized");
   }
 
-  const { title, content, category, tags, excerpt } = req.body;
+  const {
+    title,
+    content,
+    category,
+    tags,
+    excerpt,
+    coverImageUrl,
+    coverImageFileId,
+  } = req.body;
 
   blog.title = title || blog.title;
   blog.content = content || blog.content;
@@ -208,34 +212,18 @@ const updateBlog = asyncHandler(async (req, res) => {
       : tags
     : blog.tags;
 
-  // 🔥 ImageKit logic
-  if (req.file) {
-    // delete old image from ImageKit
+  if (coverImageUrl && coverImageFileId) {
     if (blog.coverImage?.fileId) {
       await imagekit.deleteFile(blog.coverImage.fileId);
     }
 
-    const optimizedBuffer = await sharp(req.file.buffer)
-      .resize({ width: 1280 })
-      .jpeg({ quality: 75 })
-      .toBuffer();
-
-    const uploadResult = await imagekit.upload({
-      file: optimizedBuffer.toString("base64"),
-      fileName: `blog-${Date.now()}.jpg`,
-      folder: "/blogs",
-    });
-
     blog.coverImage = {
-      url: uploadResult.url,
-      fileId: uploadResult.fileId,
+      url: coverImageUrl,
+      fileId: coverImageFileId,
     };
   }
 
   await blog.save();
-  // clear all blog list caches
-
-
   await invalidateBlogCache();
 
   res.json({
@@ -244,6 +232,8 @@ const updateBlog = asyncHandler(async (req, res) => {
     data: blog,
   });
 });
+
+
 
 // @desc Delete blog
 // @route DELETE /api/blogs/:id
