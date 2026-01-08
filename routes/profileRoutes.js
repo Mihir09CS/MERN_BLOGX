@@ -15,11 +15,19 @@ const {
   getFollowing,
 } = require("../controllers/profileController");
 
+// =======================
+// ME ROUTES (STATIC FIRST)
+// =======================
+
 router.get("/me", protectUser, getMyProfile);
 router.put("/me", protectUser, updateMyProfile);
 
 router.get("/me/followers", protectUser, getMyFollowers);
 router.get("/me/following", protectUser, getMyFollowing);
+
+// =======================
+// PUBLIC USER ROUTES (DYNAMIC LAST)
+// =======================
 
 router.get("/:userId", getPublicProfile);
 router.get("/:userId/followers", getFollowers);
