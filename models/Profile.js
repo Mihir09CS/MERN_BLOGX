@@ -25,6 +25,8 @@ const profileSchema = new mongoose.Schema(
       website: String,
       github: String,
       linkedin: String,
+      instagram:String,
+      facebook:String,
       twitter: String,
     },
 
