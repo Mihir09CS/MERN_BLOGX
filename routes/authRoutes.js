@@ -8,6 +8,8 @@ const {
   resendOtp,
   forgotPassword,
   resetPassword,
+  googleAuth,
+  setPassword,
 } = require("../controllers/authController");
 
 const { adminLogin } = require("../controllers/adminAuthController");
@@ -19,6 +21,7 @@ const {
 
 const validate = require("../middlewares/validateMiddleware");
 const authRateLimiter = require("../middlewares/rateLimiter");
+const { protectUser } = require("../middlewares/authMiddleware");
 
 /* ===========================
    USER AUTH ROUTES
@@ -47,6 +50,16 @@ router.post(
   validate,
   login
 );
+
+router.post(
+  "/google",
+  authRateLimiter({
+    prefix: "auth:user:google",
+    maxRequests: 5,
+  }),
+  googleAuth,
+);
+
 
 // Verify Email OTP (stricter)
 router.post(
@@ -80,6 +93,14 @@ router.post(
 
 // Reset Password (token based → no limiter)
 router.put("/reset-password/:token", resetPassword);
+
+// Set Password (for Google users)
+router.put(
+  "/set-password",
+  protectUser,
+  setPassword
+);
+
 
 /* ===========================
    ADMIN AUTH ROUTES

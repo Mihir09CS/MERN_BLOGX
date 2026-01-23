@@ -1,3 +1,4 @@
+const { OAuth2Client } = require("google-auth-library");
 const logger = require("../utils/logger");
 const bcrypt = require("bcryptjs");
 const asyncHandler = require("express-async-handler");
@@ -7,6 +8,9 @@ const generateToken = require("../utils/generateToken");
 const generateOtp = require("../utils/generateOtp");
 const sendEmail = require("../utils/sendEmail");
 const { json } = require("stream/consumers");
+const { errorMonitor } = require("events");
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const register = asyncHandler(async (req, res) => {
   const { name, email, password } = req.body;
@@ -50,7 +54,6 @@ const register = asyncHandler(async (req, res) => {
   });
 });
 
-
 // Login User ONLY
 const login = asyncHandler(async (req, res) => {
   let { email, password } = req.body;
@@ -64,10 +67,27 @@ const login = asyncHandler(async (req, res) => {
 
   const user = await User.findOne({ email });
 
-  if (!user || !(await user.matchPassword(password))) {
+  // if (!user || !(await user.matchPassword(password))) {
+  //   res.status(401);
+  //   throw new Error("Invalid email or password");
+  // }
+  if (!user) {
     res.status(401);
     throw new Error("Invalid email or password");
   }
+
+  // Block password login for Google users
+ if (user.authProvider === "google" && !user.password) {
+   res.status(400);
+   throw new Error("Please login using Google");
+ }
+
+
+  if (!(await user.matchPassword(password))) {
+    res.status(401);
+    throw new Error("Invalid email or password");
+  }
+
 
   if (!user.isVerified) {
     res.status(403);
@@ -86,6 +106,94 @@ const login = asyncHandler(async (req, res) => {
     name: user.name,
     email: user.email,
     token: generateToken(user._id, "user"),
+  });
+});
+
+const setPassword = asyncHandler(async (req, res) => {
+  const { password } = req.body;
+
+  if (!password) {
+    res.status(400);
+    throw new Error("Password is required");
+  }
+
+  const user = await User.findById(req.user.id);
+
+  if (!user) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  if (user.password) {
+    res.status(400);
+    throw new Error("Password already set");
+  }
+
+  user.password = password;
+  await user.save();
+
+  res.json({ message: "Password set successfully" });
+});
+
+// @desc Google Authentication
+// @route POST /api/auth/google
+// @access Public
+const googleAuth = asyncHandler(async (req, res) => {
+  const { token } = req.body;
+
+  if (!token) {
+    res.status(400);
+    throw new Error("Google token is required");
+  }
+
+  // Verify token with Google
+  const ticket = await googleClient.verifyIdToken({
+    idToken: token,
+    audience: process.env.GOOGLE_CLIENT_ID,
+  });
+
+  const payload = ticket.getPayload();
+  const { email, name, sub: googleId } = payload;
+
+  if (!email) {
+    res.status(400);
+    throw new Error("Google account email not found");
+  }
+
+  // Find user by googleId OR email
+  let user = await User.findOne({
+    $or: [{ googleId }, { email }],
+  });
+
+  // New user
+  if (!user) {
+    user = await User.create({
+      name,
+      email,
+      googleId,
+      authProvider: "google",
+      isVerified: true,
+    });
+  }
+  // Existing local user → link Google
+  else if (!user.googleId) {
+    user.googleId = googleId;
+    user.authProvider = "google";
+    user.isVerified = true;
+    await user.save();
+  }
+
+  if (user.isBanned) {
+    res.status(403);
+    throw new Error("User is banned");
+  }
+
+  res.status(200).json({
+    _id: user._id,
+    name: user.name,
+    email: user.email,
+    token: generateToken(user._id, "user"),
+    hasPassword: !!user.password,
   });
 });
 
@@ -239,7 +347,6 @@ const resendOtp = asyncHandler(async (req, res) => {
   res.json({ message: "New OTP sent to email" });
 });
 
-
 // @desc Forgot Password
 // @route POST /api/auth/forgot-password
 // @access Public
@@ -251,11 +358,17 @@ const forgotPassword = asyncHandler(async (req, res) => {
     throw new Error("No user with that email");
   }
 
+  // Block Google-only users
+  if (user.authProvider === "google" && !user.password) {
+    res.status(400);
+    throw new Error("Password reset is not available for Google accounts");
+  }
+
+
   const resetToken = user.getResetPasswordToken();
   await user.save({ validateBeforeSave: false });
 
   const resetUrl = `${process.env.FRONTEND_URL}/auth/reset-password/${resetToken}`;
-
 
   const message = `You requested a password reset. Click the link to reset your password:\n\n${resetUrl}\n\nIf you did not request, ignore this email.`;
 
@@ -297,17 +410,46 @@ const resetPassword = asyncHandler(async (req, res) => {
     throw new Error("Invalid or expired token");
   }
 
+  // Block Google-only users
+  if (user.authProvider === "google" && !user.password) {
+    res.status(400);
+    throw new Error("Password reset is not allowed for Google accounts");
+  }
+
   user.password = req.body.password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
 
   await user.save();
-  // console.log("RESET TOKEN (DEV):", req.params.token);
-  logger.info(`Password reset successful for user: ${user._id}`);
 
+  // const user = await User.findOne({
+  //   resetPasswordToken,
+  //   resetPasswordExpires: { $gt: Date.now() },
+  // });
+
+  // if (!user) {
+  //   res.status(400);
+  //   throw new Error("Invalid or expired token");
+  // }
+
+  // user.password = req.body.password;
+  // user.resetPasswordToken = undefined;
+  // user.resetPasswordExpires = undefined;
+
+  // await user.save();
+  console.log("RESET TOKEN (DEV):", req.params.token);
+  logger.info(`Password reset successful for user: ${user._id}`);
 
   res.json({ message: "Password reset successful" });
 });
 
-module.exports = { register, login, forgotPassword,verifyEmail,resendOtp,resetPassword, };
-
+module.exports = {
+  register,
+  login,
+  setPassword,
+  googleAuth,
+  forgotPassword,
+  verifyEmail,
+  resendOtp,
+  resetPassword,
+};
