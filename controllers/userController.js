@@ -69,6 +69,8 @@ const getUserBlogs = asyncHandler(async (req, res) => {
   res.json({ success: true, data: blogs });
 });
 
+
+
 // GET /api/users/me/bookmarks
 const getMyBookmarks = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id).populate({

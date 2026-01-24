@@ -1,67 +1,74 @@
 
-
-
 // routes/adminRoutes.js
 const express = require("express");
 const router = express.Router();
 
 const { protectAdmin } = require("../middlewares/authMiddleware");
 const validateObjectId = require("../middlewares/validateObjectId");
-const requirePermission = require("../middlewares/requirePermission")
+const requirePermission = require("../middlewares/requirePermission");
 
 const {
+  // USERS
   getAllUsers,
   getUserByIdAdmin,
   banUser,
   unbanUser,
+  deleteUserByAdmin,
+
+  // BLOGS
+  getAllBlogsAdmin,
   removeBlogAdmin,
   restoreBlogAdmin,
-  deleteUserByAdmin,
-  getAllBlogsAdmin,
   deleteBlogAdmin,
+
+  // COMMENTS
   getAllCommentsAdmin,
   deleteCommentAdmin,
+
+  // REPORTS
   getBlogReports,
   reviewBlogReport,
+
+  // LOGS / STATS
   getAdminLogs,
   getAdminStats,
 } = require("../controllers/adminController");
 
-// 🔐 Protect ALL admin routes
+/* =====================================================
+   🔐 GLOBAL ADMIN PROTECTION
+===================================================== */
 router.use(protectAdmin);
 
-// ===== USERS =====
-router.get("/users", requirePermission("MANAGE_USERS"), getAllUsers);
-router.get("/users/:id", validateObjectId("id"), getUserByIdAdmin);
-router.patch("/users/:id/ban", validateObjectId("id"),requirePermission("MANAGE_USERS"), banUser);
-router.patch("/users/:id/ban", validateObjectId("id"),requirePermission("MANAGE_USERS"), banUser);
-router.patch("/users/:id/ban", validateObjectId("id"),requirePermission("MANAGE_USERS"), banUser);
+/* =====================================================
+   👤 USERS
+===================================================== */
+router.get(
+  "/users",
+  requirePermission("MANAGE_USERS"),
+  getAllUsers
+);
+
+router.get(
+  "/users/:id",
+  validateObjectId("id"),
+  requirePermission("MANAGE_USERS"),
+  getUserByIdAdmin
+);
+
 router.patch(
   "/users/:id/ban",
   validateObjectId("id"),
   requirePermission("MANAGE_USERS"),
   banUser
 );
+
 router.patch(
-  "/users/:id/ban",
+  "/users/:id/unban",
   validateObjectId("id"),
   requirePermission("MANAGE_USERS"),
-  banUser
+  unbanUser
 );
-router.patch(
-  "/users/:id/ban",
-  validateObjectId("id"),
-  requirePermission("MANAGE_USERS"),
-  banUser
-);
-router.patch(
-  "/users/:id/ban",
-  validateObjectId("id"),
-  requirePermission("MANAGE_USERS"),
-  banUser
-);
-router.patch("/users/:id/ban", validateObjectId("id"),requirePermission("MANAGE_USERS"), banUser);
-router.patch("/users/:id/unban", validateObjectId("id"),requirePermission("MANAGE_USERS"), unbanUser);
+
 router.delete(
   "/users/:id",
   validateObjectId("id"),
@@ -69,8 +76,15 @@ router.delete(
   deleteUserByAdmin
 );
 
-// ===== BLOGS =====
-router.get("/blogs", requirePermission("MANAGE_BLOGS"), getAllBlogsAdmin);
+/* =====================================================
+   📝 BLOGS
+===================================================== */
+router.get(
+  "/blogs",
+  requirePermission("MANAGE_BLOGS"),
+  getAllBlogsAdmin
+);
+
 router.patch(
   "/blogs/:id/remove",
   validateObjectId("id"),
@@ -80,10 +94,11 @@ router.patch(
 
 router.patch(
   "/blogs/:id/restore",
-  requirePermission("MANAGE_BLOGS"),
   validateObjectId("id"),
+  requirePermission("MANAGE_BLOGS"),
   restoreBlogAdmin
 );
+
 router.delete(
   "/blogs/:id",
   validateObjectId("id"),
@@ -91,31 +106,54 @@ router.delete(
   deleteBlogAdmin
 );
 
-// ===== VIEW LOGS =====
-router.get("/logs", requirePermission("VIEW_LOGS"), getAdminLogs);
-
-// ===== COMMENTS =====
+/* =====================================================
+   💬 COMMENTS
+===================================================== */
 router.get(
   "/comments",
   requirePermission("MANAGE_COMMENTS"),
   getAllCommentsAdmin
 );
+
 router.delete(
   "/comments/:id",
-  requirePermission("MANAGE_COMMENTS"),
   validateObjectId("id"),
+  requirePermission("MANAGE_COMMENTS"),
   deleteCommentAdmin
 );
 
-router.get("/reports", requirePermission("MANAGE_REPORTS"), getBlogReports);
+/* =====================================================
+   🚨 REPORTS
+===================================================== */
+router.get(
+  "/reports",
+  requirePermission("MANAGE_REPORTS"),
+  getBlogReports
+);
+
 router.patch(
   "/reports/:id/review",
-  requirePermission("MANAGE_REPORTS"),
   validateObjectId("id"),
+  requirePermission("MANAGE_REPORTS"),
   reviewBlogReport
 );
 
-// ===== STATS / DASHBOARD =====
-router.get("/stats", getAdminStats);
+/* =====================================================
+   📜 LOGS
+===================================================== */
+router.get(
+  "/logs",
+  requirePermission("VIEW_LOGS"),
+  getAdminLogs
+);
+
+/* =====================================================
+   📊 DASHBOARD / STATS
+===================================================== */
+router.get(
+  "/stats",
+  requirePermission("VIEW_LOGS"),
+  getAdminStats
+);
 
 module.exports = router;

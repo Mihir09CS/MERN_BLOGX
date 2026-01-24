@@ -14,6 +14,7 @@ const adminActionLogSchema = new mongoose.Schema(
         "BLOG_REMOVED",
         "BLOG_RESTORED",
         "BLOG_DELETED",
+        "USER_DELETED",
         "USER_BANNED",
         "USER_UNBANNED",
         "REPORT_REVIEWED",
@@ -32,7 +33,7 @@ const adminActionLogSchema = new mongoose.Schema(
       type: Object,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("AdminActionLog", adminActionLogSchema);

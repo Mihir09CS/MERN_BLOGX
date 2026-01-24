@@ -9,7 +9,6 @@ const {
   getMe,
   updateMe,
   deleteMe,
-  getUsers,
   getUserById,
   getUserBlogs,
   getMyBookmarks,
@@ -19,10 +18,6 @@ const {
 router.get("/me", protectUser, getMe);
 router.put("/me", protectUser, updateMe);
 router.delete("/me", protectUser, deleteMe);
-
-// User content
-router.get("/:id/blogs", getUserBlogs);
-
 // Bookmarks
 router.get("/me/bookmarks", protectUser, getMyBookmarks);
 
@@ -30,6 +25,9 @@ router.get("/me/bookmarks", protectUser, getMyBookmarks);
 
 // Public user
 router.get("/:id", getUserById);
+// User content
+router.get("/:id/blogs", getUserBlogs);
+
 
 module.exports = router;
 

@@ -52,11 +52,13 @@ app.use(mongoSanitize());
 // cors
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://mern-blogx.vercel.app"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
-  })
+  }),
 );
+
 
 // routes
 app.use("/api/auth", authRoutes);
