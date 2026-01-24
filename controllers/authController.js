@@ -231,14 +231,14 @@ const verifyEmail = asyncHandler(async (req, res) => {
   // ✅ Welcome Email
   await sendEmail({
     to: user.email,
-    subject: "Welcome to Blog App 🎉",
+    subject: "Welcome to DevScribe 🎉",
     html: `
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Welcome to Blog App</title>
+  <title>Welcome to DevScribe-A modern Blog platform</title>
 </head>
 
 <body style="margin:0; padding:0; background-color:#fafafa;
@@ -253,7 +253,7 @@ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Ar
 
           <tr>
             <td align="center" style="padding-bottom:20px;">
-              <h2 style="margin:0; font-weight:600; color:#262626;">Blog App</h2>
+              <h2 style="margin:0; font-weight:600; color:#262626;">DevScribe</h2>
             </td>
           </tr>
 
@@ -285,7 +285,7 @@ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Ar
             <td style="color:#8e8e8e; font-size:12px; line-height:1.5;">
               If you did not create this account, you can safely ignore this email.
               <br/><br/>
-              © ${new Date().getFullYear()} Blog App
+              © ${new Date().getFullYear()} DevScribe
             </td>
           </tr>
 
@@ -302,7 +302,7 @@ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Ar
 
   // await sendEmail({
   //   to: user.email,
-  //   subject: "Welcome to Blog App 🎉",
+  //   subject: "Welcome to DevScribe-A modern blog platform🎉",
   //   html: `
   //     <h2>Welcome, ${user.name}!</h2>
   //     <p>Your account has been successfully verified.</p>
