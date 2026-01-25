@@ -1,6 +1,6 @@
 # DevScribe 📝
 
-**Production-Grade Full-Stack Blog Platform (Serverless MERN)**
+**A Full-Stack Blog Platform (Serverless MERN)**
 
 DevScribe is a modern, scalable, full-stack blogging platform engineered using real-world SaaS principles. It is built with a **serverless-first backend**, a **decoupled frontend**, and a strong focus on **security, scalability, and clean system design**.
 
@@ -313,3 +313,4 @@ http://localhost:5173
 ## 🏁 Final Note
 
 DevScribe demonstrates production-level backend and full-stack engineering practices. It reflects strong system design, scalability awareness, security fundamentals, and real-world architectural thinking — making it suitable for technical interviews and placement evaluations.
+
