@@ -272,7 +272,7 @@ font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Ar
 
           <tr>
             <td align="center" style="padding-bottom:24px;">
-              <a href="http://localhost:3000/login"
+              <a href="https://devscribe-a.netlify.app/login"
                  style="background:#0095f6; color:#ffffff; text-decoration:none;
                  padding:12px 24px; border-radius:6px;
                  font-size:14px; font-weight:600; display:inline-block;">
